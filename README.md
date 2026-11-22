@@ -4,7 +4,7 @@ This repository contains a Lean 4 formalization of the solution of the Thomson p
 $N=14$ points on the sphere $S^2$. The main theorem says that the bicapped hexagonal antiprism is the
 unique minimizer of the Coulomb energy.
 
-## Test
+## Preliminaries
 
 For a configuration $Y=(y_1,\ldots,y_{14})$ of distinct points on $S^2$ let
 
@@ -25,12 +25,14 @@ E_0&=69.306363296626421258489991276382007864282129573759.
 \end{aligned}
 ```
 
-**Theorem.** There is a height $h^\ast$ with $|h^\ast-h_0|\le 2\cdot10^{-51}$ such that the
-following holds.
+## Formalized theorem
+
+**Theorem.** There exists a height $h^\ast$ with $|h^\ast-h_0|\le 2\cdot10^{-51}$ such that the
+following holds:
 
 1. Among all $t$ with $|t-h_0|\le10^{-40}$, the height $h^\ast$ is the only stationary point of
    the function $t\mapsto E(X(t))$.
-2. $X(h^\ast)$ consists of 14 distinct points on $S^2$. Every configuration $Y$ of 14 distinct
+2. Every configuration $Y$ of 14 distinct
    points on $S^2$ satisfies $E(Y)\ge E(X(h^\ast))$, with equality if and only if $Y$ arises from
    $X(h^\ast)$ by an orthogonal transformation and a relabelling of the points.
 3. The minimal energy satisfies $|E(X(h^\ast))-E_0|\le10^{-49}$.
