@@ -4,6 +4,8 @@ This repository contains a Lean 4 formalization of the solution of the Thomson p
 $N=14$ points on the sphere $S^2$. The main theorem says that the bicapped hexagonal antiprism is the
 unique minimizer of the Coulomb energy.
 
+![The bicapped hexagonal antiprism on the unit sphere, rotating about its axis.](Visualization/bicapped-hexagonal-antiprism.svg)
+
 ## Preliminaries
 
 For a configuration $Y=(y_1,\ldots,y_{14})$ of distinct points on $S^2$ let
@@ -106,6 +108,7 @@ The proof is computer-assisted. It follows the paper
 | [Certificates](Certificates) | The numerical certificates: 615 Lean modules with exact data and the kernel checks, and in [Certificates/Source](Certificates/Source) the certificates of the paper from which they were generated, with a verifier that does not use Lean. |
 | [AnalyticArguments](AnalyticArguments) | The paper (TeX and PDF), and a note on the form in which Lean verifies its analytic arguments (TeX and PDF). |
 | [LeanCode](LeanCode) | The Lean code of the verification: statement, checkers, soundness theorems, analytic part. |
+| [Visualization](Visualization) | The animation above, an SVG file of 48 kB, and the program that writes it. |
 | [lakefile.toml](lakefile.toml), [lake-manifest.json](lake-manifest.json), [lean-toolchain](lean-toolchain) | The Lake project. They pin Lean 4.33.0 and the revision of Mathlib. |
 
 ## Building
