@@ -54,7 +54,7 @@ BALL = 0.058                             # the radius of a point, in units of th
 STEPS = 12                               # stored positions per 60 degrees: every 5 degrees
 DUR = "7s"                               # the time of a turn of 60 degrees
 
-PAGE, INK, INK2, MUTED, GOOD = "#f9f9f7", "#0b0b0b", "#52514e", "#6f6e69", "#008300"
+PAGE, INK, INK2, MUTED = "#f9f9f7", "#0b0b0b", "#52514e", "#6f6e69"
 BLUE, GREEN, NEUTRAL = "#2a78d6", "#149a6b", "#7d7c76"
 EDGE, FACE, TINT, RIM = "#6f6e68", "#6a7f9e", "#8794a8", "#5b6b84"
 COLOR = {NORTH: NEUTRAL, SOUTH: NEUTRAL, **{i: BLUE for i in UP}, **{i: GREEN for i in LOW}}
@@ -278,10 +278,8 @@ def svg():
         legend(252, NEUTRAL, "Two poles"),
         "</g>",
         f'<line x1="{TX}" y1="280" x2="{W - 44}" y2="280" stroke="{INK}" stroke-opacity=".1"/>',
-        f'<text x="{TX}" y="310" font-size="12" fill="{MUTED}">Coulomb energy</text>',
-        f'<text x="{TX}" y="344" fill="{INK2}"><tspan font-size="27" font-weight="600" fill="{INK}" '
-        f'letter-spacing="-.5">{ENERGY}</tspan><tspan dx="12" font-size="11" fill="{GOOD}">✓</tspan>'
-        '<tspan dx="5" font-size="13">minimum</tspan></text>',
+        f'<text x="{TX}" y="310" font-size="12" fill="{MUTED}">Minimal Coulomb energy</text>',
+        f'<text x="{TX}" y="344" font-size="27" font-weight="600" fill="{INK}" letter-spacing="-.5">{ENERGY}</text>',
         "</svg>",
     ]
     return "\n".join(parts) + "\n"

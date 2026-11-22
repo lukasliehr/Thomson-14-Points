@@ -61,26 +61,6 @@ theorem thomson_14_points :
 
 </td></tr></table>
 
-## The proof
-
-The proof is computer-assisted. It follows the paper
-[AnalyticArguments/thomson14.pdf](AnalyticArguments/thomson14.pdf) and has two parts in Lean.
-
-* **The computer-assisted part.** Three-point bounds, given by four certificates with exact
-  rational data, show that a configuration whose energy is at most that of the candidate
-  $X(h^\ast)$ has all inner products within $1.95\cdot10^{-4}$ of those of the candidate. A
-  further computation bounds the expansion of the energy at the candidate. Every computational
-  statement is verified by a *checker*, a function with values in `Bool` whose soundness theorem
-  is proved in Lean and which the Lean kernel evaluates on the data of the certificates
-  (`decide +kernel`). The data are the 615 Lean modules of [Certificates](Certificates); the
-  checkers and their soundness theorems are in [LeanCode](LeanCode). The result is the theorem
-  `N14Cert.T7.cap : N14.T7.CAP`.
-* **The analytic part.** A case analysis, a rigidity lemma and a second-order argument at the
-  candidate derive the theorem from the computer-assisted part:
-  `N14.thomson14_of : N14.T7.CAP → N14.Thomson14` in
-  [LeanCode/N14/Analytic](LeanCode/N14/Analytic). The arguments are written up in
-  [AnalyticArguments](AnalyticArguments).
-
 ## Lean entry points
 
 - [Showcase.lean](Showcase.lean): the definitions and the statement of the theorem, with `sorry`
