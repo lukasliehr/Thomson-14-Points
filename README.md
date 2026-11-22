@@ -110,52 +110,21 @@ The proof is computer-assisted. It follows the paper
 
 ## Building
 
-The build was run on Linux (x86-64, glibc 2.39). It needs `git` and
-[elan](https://lean-lang.org/install/), which installs the version of Lean that
-[lean-toolchain](lean-toolchain) names. To compile everything, run
+The project uses Lean 4.33.0. The dependencies are pinned in
+[lake-manifest.json](lake-manifest.json). To compile the library, the certificates and both
+showcase files, run
 
 ```sh
-git clone https://github.com/lukasliehr/Thomson-14-Points.git
-cd Thomson-14-Points
 lake exe cache get
 export GLIBC_TUNABLES=glibc.malloc.hugetlb=1:glibc.malloc.top_pad=67108864:glibc.malloc.mmap_threshold=33554432:glibc.malloc.arena_max=1
 LEAN_NUM_THREADS=2 lake build
 ```
 
-* `lake exe cache get` downloads the compiled files of Mathlib, so that Mathlib is not compiled
-  locally.
-* `GLIBC_TUNABLES` configures the memory allocator of the C library for the large numbers with
-  which the Lean kernel computes. **Do not omit it**: without `arena_max=1` a single module takes
-  more than 34 GB of memory in place of 20 GB.
-* `LEAN_NUM_THREADS` is the number of modules that Lake compiles at a time. The 57 modules
-  `Certificates/N14Cert/Case1/Cells*.lean` take between 11 and 20 GB of memory each, two further
-  modules take 13 and 18 GB, and all others take less than 9 GB. So `k` modules at a time need up
-  to `20 k` GB.
-
-`lake build` compiles the 108 files of [LeanCode](LeanCode), the 615 modules of
-[Certificates](Certificates) and the two showcase files. It ends with
-`Build completed successfully`, and `Showcase.lean` produces one expected `sorry` warning.
-
-A successful build is the verification: the Lean kernel checks every module of the certificates,
-and [Showcase_WithProofs.lean](Showcase_WithProofs.lean) ends with a test that fails the build if
-`thomson_14_points` depends on an axiom other than the three standard ones.
-
-**Measured.** In a clean copy of this repository, on a server with an AMD EPYC 9355P that other
-jobs used at the same time, `lake exe cache get` took one minute, and `lake build` with the
-settings above took 15 minutes (38 minutes of CPU time) with a peak of 36 GB of memory. The folder
-`.lake` then takes 8 GB, of which 7.5 GB are Mathlib.
-
-To see the axioms of the theorem yourself after the build, run
-
-```sh
-printf 'import Showcase_WithProofs\n#print axioms Thomson14.thomson_14_points\n' > Axioms.lean
-lake env lean Axioms.lean
-```
-
-which prints
-`'Thomson14.thomson_14_points' depends on axioms: [propext, Classical.choice, Quot.sound]`.
-
-`GLIBC_TUNABLES` is a setting of the GNU C library. The build was not run on other systems.
+`Showcase.lean` produces one expected `sorry` warning. `GLIBC_TUNABLES` configures the memory
+allocator: without it a single module takes more than 34 GB of memory in place of 20 GB.
+`LEAN_NUM_THREADS` is the number of modules compiled at a time. With these settings, a complete
+build on Linux compiles 725 modules of this repository on top of Mathlib in 15 minutes. It needs
+up to 36 GB of memory, and the `.lake` directory needs about 8 GB of disk space.
 
 ## Verifying the certificates without Lean
 
