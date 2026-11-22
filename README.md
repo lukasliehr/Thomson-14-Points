@@ -1,8 +1,10 @@
 # The Thomson problem for 14 points
 
 This repository contains a Lean 4 formalization of the solution of the Thomson problem for
-$N=14$ points on the sphere $S^2\subset\mathbb{R}^3$: the bicapped hexagonal antiprism is the
-unique minimizer of the Coulomb energy. The main formalized theorem is the following.
+$N=14$ points on the sphere $S^2$. The main theorem says that the bicapped hexagonal antiprism is the
+unique minimizer of the Coulomb energy.
+
+## Test
 
 For a configuration $Y=(y_1,\ldots,y_{14})$ of distinct points on $S^2$ let
 
