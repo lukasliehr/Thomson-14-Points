@@ -1,0 +1,4 @@
+All 69 archived nodes match the complete symbolic node list within Euclidean error 1e-50
+Rigidity: all angular and counting inequalities verified; ||p-p*||_2 < 23 tau, ||p-p*||_infty < 9 tau
+Counting, class coupling and local-radius margins VERIFIED
+AUDIT GEOMETRY VERIFIED

@@ -1,0 +1,31 @@
+module
+
+public import N14Cert.AnnN26.Run
+public import N14.Box.MasterKernel
+import CAP.Transport.Hex
+
+@[expose] public section
+
+namespace N14Cert.AnnN26
+
+open N14.Box
+
+set_option maxRecDepth 100000
+set_option maxHeartbeats 0
+set_option exponentiation.threshold 100000
+
+/-- The cells of the group 0. -/
+noncomputable def cells0 : List Cell :=
+  [{ i := 6, j := 7, k := 4, use := 3, tree := 3952873640785949906 },
+    { i := 9, j := 11, k := 5, use := 3, tree := 964841894861466 },
+    { i := 11, j := 12, k := 12, use := 3, tree := 890568 },
+    { i := 11, j := 12, k := 13, use := 3, tree := hex% "d8699600000000000000000000000000fd591e8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000001fd46c180000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004200000000000000000000000007de9f7e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011b4416c8" },
+    { i := 11, j := 12, k := 11, use := 3, tree := 216 },
+    { i := 6, j := 8, k := 4, use := 3, tree := 3952873016002426066 },
+    { i := 7, j := 8, k := 4, use := 3, tree := hex% "db6d80000000000000028000000001c2c364800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040884c32d34d2" }]
+
+/-- The group 0: the cover of a box by its cells. -/
+theorem g0_ok : boxOk run { e1 := 1, c1 := 0, e2 := 1, c2 := 1, e3 := 1, c3 := 3 } (hex% "3ffffc939cefffffaae2d3b72d3b73927372") cells0 = true := by
+  decide +kernel
+
+end N14Cert.AnnN26

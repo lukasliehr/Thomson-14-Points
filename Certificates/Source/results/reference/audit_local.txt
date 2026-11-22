@@ -1,0 +1,5 @@
+Hessian: exact LDL and Arb radius prove lambda_min >= 0.0964
+Cubic: exact LDL and Arb radius prove |C| <= 5.04 ||Delta||^3
+Quartic: 91 exact matrix tests and Arb radii prove |R4| <= 147 ||Delta||^4
+Exact Taylor margin at radius 0.0075: 341/160000
+AUDIT LOCAL MINIMALITY VERIFIED

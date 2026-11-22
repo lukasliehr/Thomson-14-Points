@@ -1,0 +1,98 @@
+module
+
+public import N14Cert.Case1.Run
+public import N14.Box.MasterKernel
+import CAP.Transport.Hex
+
+@[expose] public section
+
+namespace N14Cert.Case1
+
+open N14.Box
+
+set_option maxRecDepth 100000
+set_option maxHeartbeats 0
+set_option exponentiation.threshold 100000
+
+/-- The cells of the group 37. -/
+noncomputable def cells37 : List Cell :=
+  [{ i := 56, j := 64, k := 107, use := 0, tree := hex% "d0000000000000000000000000000000000000000000dc6070000000006c99e9880d0c1a0b0000000000000000000000000000000000000000000000032000000001700708710" }]
+
+/-- The group 37: the cover of a box by its cells. -/
+theorem g37_ok : boxOk run { e1 := 5, c1 := 0, e2 := 5, c2 := 8, e3 := 5, c3 := 51 } (3) cells37 = true := by
+  decide +kernel
+
+/-- The cells of the group 38. -/
+noncomputable def cells38 : List Cell :=
+  [{ i := 56, j := 65, k := 50, use := 0, tree := 3765624415269072 }]
+
+/-- The group 38: the cover of a box by its cells. -/
+theorem g38_ok : boxOk run { e1 := 5, c1 := 0, e2 := 5, c2 := 9, e3 := 4, c3 := 25 } (3) cells38 = true := by
+  decide +kernel
+
+/-- The cells of the group 39. -/
+noncomputable def cells39 : List Cell :=
+  [{ i := 57, j := 29, k := 50, use := 0, tree := 3 }]
+
+/-- The group 39: the cover of a box by its cells. -/
+theorem g39_ok : boxOk run { e1 := 5, c1 := 1, e2 := 4, c2 := 4, e3 := 4, c3 := 25 } (3) cells39 = true := by
+  decide +kernel
+
+/-- The cells of the group 40. -/
+noncomputable def cells40 : List Cell :=
+  [{ i := 25, j := 30, k := 22, use := 0, tree := hex% "e4b6dda000000000000000101a0000000000000000000000000000000000000000024b39e8000000000000000da03430682980000000000000000000000000000000000000000087eee6d000000000000000080d00000000000000000000000000000000000000000127be80a0000000000000001000000000000000000000000000000000000000002e0b4e60000000000000000230400000000000000000000000000000000000000002c32da60000000000000000220684c1000000000000000000000000000000000000000008fce3b200000000000000008c3481a18" }]
+
+/-- The group 40: the cover of a box by its cells. -/
+theorem g40_ok : boxOk run { e1 := 4, c1 := 0, e2 := 4, c2 := 5, e3 := 3, c3 := 12 } (3) cells40 = true := by
+  decide +kernel
+
+/-- The cells of the group 41. -/
+noncomputable def cells41 : List Cell :=
+  [{ i := 26, j := 12, k := 22, use := 0, tree := hex% "da6da6d141b6d045a" }]
+
+/-- The group 41: the cover of a box by its cells. -/
+theorem g41_ok : boxOk run { e1 := 4, c1 := 1, e2 := 3, c2 := 2, e3 := 3, c3 := 12 } (3) cells41 = true := by
+  decide +kernel
+
+/-- The cells of the group 42. -/
+noncomputable def cells42 : List Cell :=
+  [{ i := 10, j := 12, k := 23, use := 0, tree := 3627299864 }]
+
+/-- The group 42: the cover of a box by its cells. -/
+theorem g42_ok : boxOk run { e1 := 3, c1 := 0, e2 := 3, c2 := 2, e3 := 3, c3 := 13 } (3) cells42 = true := by
+  decide +kernel
+
+/-- The cells of the group 43. -/
+noncomputable def cells43 : List Cell :=
+  [{ i := 10, j := 13, k := 22, use := 0, tree := hex% "3000000000000000000000000000000000000000008b750e1000000000000000080d000000000000000000000000000000000000000001360ed8000000000000000011800000000000000000000000000000000000000006af1b65000000000000000040c000000000000000000000000000000000000000036a84ff800000000000000020600000000000000000000000000000000000000001b054c740000000000000001014c200000000000000000000000000000000000000000be44c1b00000000000000008c300000000000000000000000000000000000000000d7f85ed000000000000000081800000000000000000000000000000000000000006d3ccb800000000000000004080000000000000000000000000000000000000000310f788400000000000000021611068400000000000000000000000000000000000000001438ac4c00000000000000011800000000000000000000000000000000000000005c9e64d000000000000000046103422c340d018" },
+    { i := 10, j := 13, k := 23, use := 0, tree := hex% "d834000000000000000000000000000000000000000000000005000000002586d5a04068418" }]
+
+/-- The group 43: the cover of a box by its cells. -/
+theorem g43_ok : boxOk run { e1 := 3, c1 := 0, e2 := 3, c2 := 3, e3 := 2, c3 := 6 } (62) cells43 = true := by
+  decide +kernel
+
+/-- The cells of the group 44. -/
+noncomputable def cells44 : List Cell :=
+  [{ i := 11, j := 4, k := 9, use := 0, tree := 235602784922 }]
+
+/-- The group 44: the cover of a box by its cells. -/
+theorem g44_ok : boxOk run { e1 := 3, c1 := 1, e2 := 2, c2 := 1, e3 := 2, c3 := 6 } (3) cells44 = true := by
+  decide +kernel
+
+/-- The cells of the group 45. -/
+noncomputable def cells45 : List Cell :=
+  [{ i := 4, j := 0, k := 9, use := 0, tree := hex% "139722a0000000000000000000000000000000102a400000000000000000000000000753efc00000000000000000000000000000002368000000000000000000000000007ac5700000000000000000000000000000000236d02d96902d1" }]
+
+/-- The group 45: the cover of a box by its cells. -/
+theorem g45_ok : boxOk run { e1 := 2, c1 := 1, e2 := 1, c2 := 0, e3 := 2, c3 := 6 } (3) cells45 = true := by
+  decide +kernel
+
+/-- The cells of the group 46. -/
+noncomputable def cells46 : List Cell :=
+  [{ i := 0, j := 0, k := 24, use := 0, tree := hex% "c000000000000000000000000ac0b09f80000000000000000000000020aee704216c0000000000000000000000000000000000000000000013f80000000641210d8a0000000000000000000000000000000000000000000012698000000078c22d73406841a0c0000000000000000000000017096183c000000000000000000000005ea3ed0a6100000000000000000000000000000000000000000000000000000000d179d9cc800000000000000000000000000000000000000000000000e00000004fbb7d9c70000000000000000000000000000000000000000000000018000000069955535a1000000000000000000000000000000000000000000000004400000003d79d918f10000000000000000000000000000000c000000000000000000000001662e42d840000000000000000000000000000002d000000000000003800000008907bb7d280821b6c00000000000000000000000000000000000000000000008400000002739a935e034101800000000000000000000000000000000000000000000014000000006ab17e70400000000000000000000000000000000000000000000002b00000002635ad58e800000000000000000000000000000000000000000000010e0000000e5dd45555110816152c8" }]
+
+/-- The group 46: the cover of a box by its cells. -/
+theorem g46_ok : boxOk run { e1 := 1, c1 := 0, e2 := 1, c2 := 0, e3 := 3, c3 := 14 } (3) cells46 = true := by
+  decide +kernel
+
+end N14Cert.Case1

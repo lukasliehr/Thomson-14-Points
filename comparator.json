@@ -1,0 +1,24 @@
+{
+  "challenge_module": "Showcase",
+  "solution_module": "Showcase_WithProofs",
+  "theorem_names": [
+    "Thomson14.thomson_14_points"
+  ],
+  "definition_names": [
+    "Thomson14.Point",
+    "Thomson14.IsConfiguration",
+    "Thomson14.E",
+    "Thomson14.Congruent",
+    "Thomson14.IsUniqueMinimizer",
+    "Thomson14.pointAt",
+    "Thomson14.X",
+    "Thomson14.h₀",
+    "Thomson14.E₀"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": true
+}

@@ -1,0 +1,175 @@
+\documentclass[reqno,a4paper,11pt]{amsart}
+
+\addtolength{\hoffset}{-0.6cm}
+\addtolength{\textwidth}{1.2cm}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{booktabs}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Sph}{\mathbb{S}}
+\newcommand{\lean}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\nolinkurl{#1}}
+
+\begin{document}
+
+\title[The Thomson problem for 14 points: the proof in Lean]{The Thomson problem for 14 points:\\ the analytic arguments of the proof in Lean}
+
+\date{November 2026}
+
+\begin{abstract}
+The paper \file{thomson14.pdf} of this folder proves that the bicapped hexagonal antiprism is the unique minimizer of the Coulomb energy of $14$ points on the sphere. Its proof combines certificates, which programs check, with analytic arguments. This note describes the form in which the proof is verified in Lean: the theorem, the statements that Lean takes from the certificates, and the analytic arguments that derive the theorem from them. In three places the analytic argument in Lean differs from the one of the paper; the note contains these three arguments.
+\end{abstract}
+
+\maketitle
+
+\section{The theorem}
+
+For a height $h$ let $X(h)$ consist of the two poles $(0,0,\pm 1)$, of the six points
+$(r \cos \frac{k\pi}{3}, r \sin \frac{k\pi}{3}, h)$, $k = 0, \dots, 5$, and of the six points
+$(r \cos (\frac{k\pi}{3} + \frac{\pi}{6}), r \sin (\frac{k\pi}{3} + \frac{\pi}{6}), -h)$, $k = 0, \dots, 5$, where $r = \sqrt{1 - h^2}$:
+two regular hexagons at the heights $h$ and $-h$, the second rotated by $30$ degrees against the first, and the two poles.
+Let $E(x) = \sum_{i<j} |x_i - x_j|^{-1}$ denote the Coulomb energy of a configuration $x$, and let
+\[
+    h_0 = 0.45536779516246300350924502372107445741075259468695 .
+\]
+
+\begin{theorem}\label{thm:thomson14}
+There is exactly one number $h^*$ with $|h^* - h_0| \leq 10^{-40}$ at which the function $h \mapsto E(X(h))$ has the derivative $0$. The configuration $X^* = X(h^*)$ consists of $14$ distinct points of the unit sphere $\Sph^2$ of $\R^3$. Let $x_1, \dots, x_{14}$ be distinct points of $\Sph^2$. Then
+\[
+    E(x) \geq E(X^*) ,
+\]
+and if equality holds, there are an orthogonal matrix $U$ and a permutation $\sigma$ of $\{1, \dots, 14\}$ such that $x_i = U X^*_{\sigma(i)}$ for all $i$.
+\end{theorem}
+
+In Lean this is the proposition \lean{N14.Thomson14} of the file \file{LeanCode/N14/Statement.lean}, and the theorem \lean{N14Cert.T7A.thomson14} is its proof. The file \file{Showcase.lean} states the same theorem for points of Euclidean space, together with the enclosures $|h^* - h_0| \leq 2 \cdot 10^{-51}$ and $|E(X^*) - E_0| \leq 10^{-49}$ of Theorem \ref{thm:cap} (a).
+
+The proof has two parts. The \emph{computer-assisted part} is Theorem \ref{thm:cap}: it contains what the proof takes from its certificates. The \emph{analytic part} derives Theorem \ref{thm:thomson14} from Theorem \ref{thm:cap}; it is the theorem \lean{N14.thomson14\_of} of the file \file{LeanCode/N14/Analytic/Main.lean}. Sections, lemmas and propositions that we cite by number are those of the paper.
+
+\section{The computer-assisted part}\label{sec:cap}
+
+A \emph{stationary height} is a zero of the derivative of $h \mapsto E(X(h))$ within $10^{-40}$ of $h_0$. The candidate is $X^* = X(h^*)$ for the stationary height $h^*$, and $E^* = E(X^*)$.
+
+Let $x$ be a configuration of $14$ distinct points of $\Sph^2$, and let $P$ and $Q$ be two of its points with the smallest inner product. We say that $P$ and $Q$ have the type $P$ and that the other points have the type $R$. The \emph{type} of an ordered triple of points is the triple of its inner products, and its \emph{pattern} is the triple of the types of its points. The \emph{nodes} of a pattern are the types of the ordered triples of points of the candidate with this pattern, where the poles are the points of the type $P$. Let $\tau = 1.95 \cdot 10^{-4}$. The cutoffs $0.8$, $-0.98$ and $-0.99$ below are the binary64 numbers that the programs of the paper store (Section 1 of the paper, numerical conventions).
+
+The paper describes a configuration near the candidate by $25$ \emph{gauge coordinates} $p$: the first pole is $(0,0,1)$, the second pole is $(a, b, -\sqrt{1-a^2-b^2})$, the first point of the upper hexagon is $(\sqrt{1-z^2}, 0, z)$, and each of the other eleven points is $(\sqrt{1-z^2} \cos\vartheta, \sqrt{1-z^2} \sin\vartheta, z)$. The coordinates are $a$, $b$ and the numbers $z$ and $\vartheta$ of the points. Let $E(p)$ denote the energy of this configuration, and let $p^*$ denote the coordinates of the candidate.
+
+\begin{theorem}[The computer-assisted part]\label{thm:cap}
+The following statements hold. In (b) and (c), $x$ is a configuration of $14$ distinct points of $\Sph^2$.
+\begin{enumerate}
+    \item[(a)] \emph{The candidate.} There is exactly one stationary height $h^*$, and $|h^* - h_0| \leq 2 \cdot 10^{-51}$. The candidate consists of $14$ distinct points of $\Sph^2$, and
+    \[
+        |E^* - 69.306363296626421258489991276382007864282129573759| \leq 10^{-49} .
+    \]
+    \item[(b)] \emph{Cases 0, I and II.} If two points of $x$ have an inner product of at least $0.8$, then $E(x) > E^* + 0.086$. If all inner products of $x$ are at least $-0.98$, or if the smallest of them lies in $[-0.99, -0.98]$, then $E(x) > E^* + 3.6 \cdot 10^{-4}$.
+    \item[(c)] \emph{Case III.} Let the smallest inner product of $x$ be at most $-0.99$ and all inner products at most $0.8$. Then $E(x) > E^* - 3.65 \cdot 10^{-13}$. If the type of a triple of points of $x$ has distance at least $\frac{1}{100}$ from all nodes of its pattern, then $E(x) > E^*$. If the inner product of a pair of points of $x$ has distance at least $\tau$ from the inner products of all pairs of the candidate with the same types, then $E(x) > E^*$.
+    \item[(d)] \emph{The geometry.} The inner products of the points of the candidate are nine explicit functions of $h^*$, and any two of the nine values differ by more than $0.018$. The inequalities between $h^*$, $\pi$ and values of the sine and the cosine hold that the program of the paper checks for the rigidity lemma (Lemma 8.1).
+    \item[(e)] \emph{The local statement.} There are functions $L$, $Q$, $C$ on $\R^{25}$ with $L(tD) = t \, L(D)$, $Q(tD) = t^2 Q(D)$ and $C(tD) = t^3 C(D)$ for all $t \in \R$ and all $D \in \R^{25}$ such that
+    \[
+        Q(D) \geq 0.0482 \, |D|^2 , \qquad |C(D)| \leq 5.04 \, |D|^3
+    \]
+    for all $D \in \R^{25}$, and
+    \[
+        \bigl| E(p^* + D) - E(p^*) - L(D) - Q(D) - C(D) \bigr| \leq 147 \, |D|^4
+    \]
+    for all $D$ with $|D_k| \leq \frac{1}{125}$ for all $k$. Here $|D|$ is the Euclidean norm, and the configuration with the coordinates $p^*$ is the candidate.
+    \item[(f)] $23 \, \tau < 0.0075$.
+\end{enumerate}
+\end{theorem}
+
+In Lean the conjunction of (a) to (f) is the proposition \lean{N14.T7.CAP} of the file \file{LeanCode/N14/Interface.lean}, and Theorem \ref{thm:cap} is the theorem \lean{N14Cert.T7.cap} of the module \file{Certificates/N14Cert/T7.lean}. Its proof consists of the modules of the folder \file{Certificates/}, which contain the data of the certificates and the evaluations of the checkers in the Lean kernel, and of the theorems of soundness of the checkers in \file{LeanCode/}. Table \ref{tab:paper} relates the statements to the paper.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}lp{0.36\textwidth}p{0.48\textwidth}@{}}
+\toprule
+ & statement of the paper & difference \\
+\midrule
+(a) & Lemma 1.1, first part & the stationary height is unique within $10^{-40}$ of $h_0$, as in the proof of the lemma; formula (1.1) for $E(X(h))$ is a theorem (\lean{N14.energy\_X14}) \\
+(b) & Proposition 5.2; Theorem 1.3, Proposition 5.1, Section 6 & the conclusions are those of Theorem 1.3 and are strict \\
+(c) & Proposition 7.4 with Proposition 3.2 and the counting of Lemma 7.1 & one implication for configurations in each case: the inequality of the certificate, the identity and the comparison with $E^*$ together; the nodes are the types of the triples of the candidate by definition, and no list of nodes occurs \\
+(d) & the list (1.2); $\gamma > 0.018$ of Lemma 7.3; the inequalities in the proof of Lemma 8.1 & all nine values differ pairwise by more than $0.018$ \\
+(e) & the bounds in Proposition 9.1 & a statement about the energy of the configuration with the coordinates $p^* + D$ and not about Taylor coefficients; $Q$ takes the place of the quadratic form of the Hessian; $L = 0$ is not stated \\
+(f) & proof of Theorem 1.2 & none \\
+\bottomrule
+\end{tabular}
+\medskip
+\caption{The statements of Theorem \ref{thm:cap} and the statements of the paper.}\label{tab:paper}
+\end{table}
+
+Theorem \ref{thm:cap} does not contain the arguments of the paper: that the candidate is a critical point of the energy (Lemma 1.1, second part), the two lemmas on the signs and on the classes of the inner products (Lemmas 7.2 and 7.3), the rigidity lemma (Lemma 8.1), the deduction of the local minimality from (e) (Proposition 9.1), and the case analysis (proof of Theorem 1.2). These are the analytic part.
+
+\section{The analytic statements}
+
+Table \ref{tab:analytic} lists the analytic statements in the order of the proof, with the theorems of Lean that contain them. All of them are proved. The files are the ten files of the folder \file{LeanCode/N14/Analytic/}.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}lp{0.42\textwidth}p{0.25\textwidth}p{0.17\textwidth}@{}}
+\toprule
+ & analytic statement & theorems of Lean & file \\
+\midrule
+(A1) & the energy and the inner products do not change under orthogonal maps and relabellings; a frame with a given pole and a given meridian & \lean{energy\_of\_congr}, \newline \lean{exists\_frame} & \file{Invariance.lean} \\
+(A2) & a configuration with $E \leq E^*$ belongs to Case III & \lean{cap\_of\_energy\_le} & \file{Cases.lean} \\
+(A3) & every inner product of such a configuration is within $\tau$ of the inner product of a pair of the candidate with the same types (Lemma 7.1) & \lean{near\_class} & \file{Cases.lean} \\
+(A4) & a point at the height $\pm h^*$ over $P$ has the height $\mp h^*$ over $Q$ (Lemma 7.2) & \lean{sign\_coupling} & \file{Cases.lean} \\
+(A5) & two points of the rings have an inner product near a value of the class that their heights determine (Lemma 7.3) & \lean{class\_coupling}, \newline \lean{tube\_of\_energy\_le} & \file{Cases.lean} \\
+(A6) & a unit vector of the plane whose cosine is near that of a direction & \lean{dev\_direct}, \newline \lean{dev\_refine} & \file{Plane.lean}, \newline \file{Slots.lean} \\
+(A7) & the cosines of the angles between the points of the rings & \lean{cos\_same}, \lean{cos\_diff} & \file{Rigidity.lean} \\
+(A8) & the directions of the points, and the relabelling & \lean{kd\_spec}, \lean{gN\_inj}, \newline \lean{exists\_perm} & \file{Rigidity.lean} \\
+(A9) & the second pole; the gauge coordinates within $0.0075$ of those of the candidate (Lemma 8.1) & \lean{pole\_A}, \lean{pole\_B}, \newline \lean{rigidity} & \file{Coordinates.lean} \\
+(A10) & the candidate is a critical point: the linear form of (e) vanishes (Lemma 1.1, second part) & \lean{force\_vector}, \newline \lean{energy\_lower}, \newline \lean{linear\_zero} & \file{Force.lean}, \newline \file{Critical.lean}, \newline \file{LocalMin.lean} \\
+(A11) & local minimality on the ball of radius $0.0075$ (Proposition 9.1) & \lean{local\_min} & \file{LocalMin.lean} \\
+(A12) & the assembly (Theorem 1.2) & \lean{thomson14\_of} & \file{Main.lean} \\
+\bottomrule
+\end{tabular}
+\medskip
+\caption{The analytic statements of the proof in Lean.}\label{tab:analytic}
+\end{table}
+
+\section{From the computer-assisted part to the hypotheses of rigidity}
+
+Let $x$ be a configuration of $14$ distinct points of $\Sph^2$ with $E(x) \leq E^*$. The statements (b) of Theorem \ref{thm:cap} exclude Cases 0, I and II. So $x$ belongs to Case III, with two points $P$, $Q$ of smallest inner product. By the last statement of (c), every inner product of $x$ lies within $\tau$ of the inner product of a pair of points of the candidate with the same types. Hence $\langle P, Q \rangle$ is within $\tau$ of $-1$, and for every other point $y$ the number $\langle P, y \rangle$ is within $\tau$ of $h^*$ or of $-h^*$, and likewise $\langle Q, y \rangle$. The two signs are opposite, since $|\langle P, y \rangle + \langle Q, y \rangle| \leq |P + Q| = (2 + 2 \langle P, Q \rangle)^{1/2}$ is small. The inner product of two points $y$, $y'$ other than $P$, $Q$ is within $\tau$ of one of six values: three belong to two points of the same hexagon of the candidate, three to points of different hexagons. It is one of the first three if and only if $y$ and $y'$ have the same sign over $P$. Otherwise the type of the triple $P, y, y'$ has distance at least $\frac{1}{100}$ from all nodes of its pattern, because any two of the nine values differ by more than $0.018$, and the second statement of (c) gives $E(x) > E^*$. These are the hypotheses of the rigidity lemma of the paper.
+
+\section{Three changes of the proof}
+
+The proof in Lean differs from the proof of the paper in three places, because the changed argument is shorter in Lean.
+
+\subsection*{Rigidity at one radius}
+The rigidity lemma of the paper holds for every radius $\tau \leq 10^{-3}$ of the tubes, and it bounds the Euclidean norm of the displacement of the gauge coordinates by $23 \, \tau$. The proof of Theorem \ref{thm:thomson14} uses it for $\tau = 1.95 \cdot 10^{-4}$ and needs the bound $0.0075$. We prove this instance, with bounds that are multiples of $\tau$. The cosine of the angle between two points of the rings is within $3.6 \, \tau$ of the cosine of the candidate. The sine of the deviation of the angle of a point from its angle in the candidate is at most $2.4 \cdot 3.6 \, \tau$, and $3.6 \cdot 3.6 \, \tau$ for one point. The two coordinates of the second pole are at most $2.8 \, \tau$, and the heights deviate by at most $\tau$. The sum of the squares of these $25$ bounds is smaller than $0.0075^2$. The inequalities of statement (d) for the sine and the cosine, and statement (f), are not used.
+
+\subsection*{Slots in place of the circular order}
+The paper orders the points of a hexagon on the circle, bounds the gaps between neighbours from below, and concludes from the sum $2\pi$ of the gaps that each hexagon has six points with gaps near $60$ degrees. We choose an orthogonal map after which $P = (0,0,1)$ and a point $r$ of positive height, the \emph{reference point}, has the azimuth $0$. Let $y$ be a point other than $P$, $Q$, $r$, and let $(c, s)$ be the unit vector of its azimuth. The cosine $c$ is within $3.6 \, \tau$ of $\frac12$, $-\frac12$ or $-1$ if the height of $y$ is positive, and of $\frac{\sqrt 3}{2}$, $0$ or $-\frac{\sqrt 3}{2}$ otherwise. Together with the sign of $s$ this assigns to $y$ one of eleven \emph{directions}, the multiples of $30$ degrees other than $0$, and $(c,s)$ is close to the unit vector of its direction. Two points with the same direction have heights of the same sign, and the inner product of their unit vectors is at least $0.99$, which the three values for points of one hexagon exclude. Hence the map that sends $P$, $Q$, $r$ to the labels of the two poles and of the first point of the upper hexagon, and every other point to the label of its direction, is an injective map from the $14$ points to the $14$ labels of the candidate. It is therefore a bijection, and its inverse is the relabelling. No count of the points of a hexagon and no sum of gaps occur. An angle appears only at the end: it is the arcsine of the component of $(c,s)$ across its direction. One point needs a second comparison. For the direction of $180$ degrees the cosine determines the unit vector only up to $(2 \cdot 3.6 \, \tau)^{1/2}$, and we compare this point with the point in the direction of $60$ degrees.
+
+\subsection*{Criticality without derivatives on the sphere}
+Statement (e) does not state that the linear form $L$ vanishes. The paper derives this from the symmetry group of the candidate. We use the convexity of $\varphi(t) = (2 - 2t)^{-1/2}$: for $t, s < 1$,
+\[
+    \varphi(t) \geq \varphi(s) + \varphi'(s) \, (t - s) , \qquad \varphi'(s) = (2 - 2s)^{-3/2} .
+\]
+For a configuration $x$ of the sphere with distinct points this gives $E(x) - E^* \geq W(x) - W(X^*)$ with the quadratic form $W(x) = \sum_{i<j} w_{ij} \langle x_i, x_j \rangle$, whose weights $w_{ij} = \varphi'(\langle X^*_i, X^*_j \rangle)$ depend on the class of the pair $i, j$ only. For the family $X(h)$ the right-hand side is a polynomial $g$ of degree two in $h$ with $g(h^*) = 0$. So $h \mapsto E(X(h)) - g(h)$ has a local minimum at $h^*$, and since the derivative of $E(X(h))$ vanishes at $h^*$, the derivative of $g$ vanishes there as well, by the theorem of Fermat. This is one linear relation between the nine weights. With it, the sum $\sum_{j \neq i} w_{ij} X^*_j$ is a multiple of $X^*_i$ for every $i$. We verify the inner products of this identity with three points of the candidate: $42$ identities between polynomials in the weights, in $h^*$ and in $\sqrt 3$, each of which is the relation times $0$, $1$ or $h^*$. For unit vectors $x_i = X^*_i + d_i$ we have $\langle d_i, X^*_i \rangle = -\tfrac12 |d_i|^2$. Hence the terms of first order of $W(x) - W(X^*)$ are of second order, and
+\[
+    E(x) \geq E^* - K \sum_i |x_i - X^*_i|^2
+\]
+for a constant $K$ and every configuration $x$ of the sphere with distinct points. Along a line $p^* + t D$ of gauge coordinates the right-hand side is at least $E^* - K' t^2$, and by (e) the left-hand side is $E^* + t \, L(D) + O(t^2)$. Therefore $L(D) = 0$. No derivative of the energy on the sphere and no group occur.
+
+\section{The end of the proof}
+
+By the rigidity lemma the configuration $x$ is, after an orthogonal map and a relabelling, the configuration with the gauge coordinates $p^* + D$, where $|D| \leq 0.0075$ and $|D_k| \leq \frac{1}{125}$ for all $k$. The energy does not change under these maps. By (e) with $L = 0$,
+\[
+    E(p^* + D) - E^* \geq |D|^2 \bigl( 0.0482 - 5.04 \, |D| - 147 \, |D|^2 \bigr) > 0 \qquad \text{for } 0 < |D| \leq 0.0075 .
+\]
+Since $E(x) \leq E^*$, we obtain $D = 0$, and $x$ arises from $X^*$ by an orthogonal map and a relabelling. In particular $E(x) = E^*$. So no configuration has an energy below $E^*$. This proves Theorem \ref{thm:thomson14}.
+
+\section{What the theorem rests on}
+
+The proof of Theorem \ref{thm:thomson14} in Lean has three parts. The files of the folder \file{LeanCode/} contain the checkers and their theorems of soundness. The modules of the folder \file{Certificates/} contain the data of the certificates and end with Theorem \ref{thm:cap}. The ten files of the analytic part prove \lean{N14.thomson14\_of}. They use two lemmas on Gram matrices (\file{LeanCode/N32/Gram.lean}): two triples of vectors of $\R^3$ with the same inner products, the first of them linearly independent, differ by an orthogonal map, which yields the frame of the rigidity lemma; and a vector that is orthogonal to three linearly independent vectors vanishes. The module \file{Certificates/N14Cert/T7A.lean} applies \lean{N14.thomson14\_of} to Theorem \ref{thm:cap}, and it tests that \lean{N14Cert.T7A.thomson14} depends on the axioms \lean{propext}, \lean{Classical.choice} and \lean{Quot.sound} only. No step uses \lean{native\_decide} or \lean{sorry}.
+
+\end{document}

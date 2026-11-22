@@ -1,0 +1,25 @@
+n00 node lemma, regenerated roots and tube VERIFIED
+n02 node lemma, regenerated roots and tube VERIFIED
+n03 node lemma, regenerated roots and tube VERIFIED
+n04 node lemma, regenerated roots and tube VERIFIED
+n05 node lemma, regenerated roots and tube VERIFIED
+n06 node lemma, regenerated roots and tube VERIFIED
+n07 node lemma, regenerated roots and tube VERIFIED
+n11 node lemma, regenerated roots and tube VERIFIED
+n12 node lemma, regenerated roots and tube VERIFIED
+n13 node lemma, regenerated roots and tube VERIFIED
+n14 node lemma, regenerated roots and tube VERIFIED
+n15 node lemma, regenerated roots and tube VERIFIED
+n16 node lemma, regenerated roots and tube VERIFIED
+n17 node lemma, regenerated roots and tube VERIFIED
+n19 node lemma, regenerated roots and tube VERIFIED
+n25 node lemma, regenerated roots and tube VERIFIED
+n26 node lemma, regenerated roots and tube VERIFIED
+n34 node lemma, regenerated roots and tube VERIFIED
+n36 node lemma, regenerated roots and tube VERIFIED
+n44 node lemma, regenerated roots and tube VERIFIED
+n48 node lemma, regenerated roots and tube VERIFIED
+n56 node lemma, regenerated roots and tube VERIFIED
+Tube upper bound < 1.95e-4; 23 tau <= 0.004485 < 0.0075
+Verified runs: 31 boxes: 2903200
+AUDIT CLOSURE VERIFIED

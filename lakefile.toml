@@ -1,0 +1,49 @@
+name = "Thomson14"
+version = "0.1.0"
+defaultTargets = ["N14", "N14Cert", "Showcase", "Showcase_WithProofs"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "db584cd6d46c92f209a44c0f1c829460d327499d"
+
+# The statement of the main theorem, with Mathlib as its only import.
+[[lean_lib]]
+name = "Showcase"
+
+# The same statement with its proof, which imports the libraries below.
+[[lean_lib]]
+name = "Showcase_WithProofs"
+
+# The reader of large hexadecimal numerals (`hex%`). It is an elaborator, and it is compiled to
+# native code so that the certificate modules load it instead of interpreting it.
+[[lean_lib]]
+name = "CAPNumeral"
+srcDir = "LeanCode"
+precompileModules = true
+
+# General checkers for the Lean kernel with their soundness theorems.
+[[lean_lib]]
+name = "CAP"
+srcDir = "LeanCode"
+globs = ["CAP.+"]
+
+# Lemmas on Gram matrices of three vectors.
+[[lean_lib]]
+name = "N32"
+srcDir = "LeanCode"
+globs = ["N32.+"]
+
+# The proof for 14 points: statement, checkers, soundness theorems, analytic part.
+[[lean_lib]]
+name = "N14"
+srcDir = "LeanCode"
+globs = ["N14.+"]
+
+# The certificates as Lean modules: exact data, checks by the Lean kernel (`decide +kernel`),
+# and the final theorem `N14Cert.T7A.thomson14`.
+[[lean_lib]]
+name = "N14Cert"
+srcDir = "Certificates"
+roots = ["N14Cert", "Height", "HeightSound"]
+globs = ["N14Cert.+", "Height", "HeightSound"]

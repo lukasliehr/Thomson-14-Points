@@ -1,0 +1,6 @@
+case0 : EXACT coefficientwise energy identity and all symmetries VERIFIED
+case1 : EXACT coefficientwise energy identity and all symmetries VERIFIED
+case2 : EXACT coefficientwise energy identity and all symmetries VERIFIED
+cap : EXACT coefficientwise energy identity and all symmetries VERIFIED
+Cap: all 22 rational G blocks PD and F = N G N^T exactly
+AUDIT ALL IDENTITIES VERIFIED

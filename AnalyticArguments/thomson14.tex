@@ -1,0 +1,927 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\hypersetup{pdftitle={The Thomson problem for N=14: a computer-assisted proof},pdfauthor={}}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Sph}{\mathbb{S}^2}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+\newcommand{\Xs}{X^{\ast}}
+\newcommand{\Es}{E^{\ast}}
+\newcommand{\hs}{h^{\ast}}
+\newcommand{\PSD}{\succeq 0}
+% ---- numbers of the Case III certificate (filled in from the verification logs)
+\newcommand{\TUBE}{1.95\cdot10^{-4}}        % verified tube radius tau (1.9482e-4 rounded up)
+\newcommand{\THLOC}{4\cdot10^{-14}}
+\newcommand{\THFAR}{10^{-12}}
+\newcommand{\DELTAZ}{10^{-15}}
+\newcommand{\CMAX}{237.3}          % largest c_M
+\newcommand{\NPPR}{533\,876}\newcommand{\NPRR}{630\,673}\newcommand{\NRRR}{475\,861}
+
+\title{The Thomson problem for $N=14$:\\ the bicapped hexagonal antiprism is optimal\\[0.3em]
+\large a computer-assisted proof}
+\author{}
+\date{Public verification package, 1 October 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let $\Xs$ be the bicapped hexagonal antiprism with $D_{6d}$ symmetry. We prove that $\Xs$ is, up to isometries, the unique
+minimizer of the Coulomb energy $E(X)=\sum_{i<j}|x_i-x_j|^{-1}$ among $14$-point configurations on $\Sph$;
+$\Es=E(\Xs)=69.30636329662642125848999127638\ldots$ (rigorous enclosure).
+The proof is computer-assisted. Three-point semidefinite bounds, converted into exact rational certificates and verified by
+branch and bound in outward-rounded interval arithmetic, show: (0) a competitor has no two points with inner product
+$\ge0.8$; (I), (II) a competitor contains a pair of points with inner product $<-0.99$; (III) a certificate with an
+energy offset just below $\Es$ forces all inner products of such a competitor to lie within $\TUBE$ of
+the corresponding inner products of $\Xs$. A rigidity lemma and a quantitative second-order analysis at $\Xs$ complete the
+proof.
+Small residual values and gradients at the candidate triple types are included in the interval estimates.
+A counting argument, using the twelve triples through each pair, supplies the quantitative localization bound.
+\end{abstract}
+
+
+%======================================================================
+\section{Introduction and main result}
+%======================================================================
+
+For a finite configuration $X=\{x_1,\dots,x_N\}\subset\Sph$ of distinct points let
+\[
+  E(X)=\sum_{1\le i<j\le N}\frac{1}{|x_i-x_j|}=\sum_{i<j}\varphi(\ip{x_i}{x_j}),\qquad \varphi(t)=(2-2t)^{-1/2}.
+\]
+Thomson's problem asks for the minimizers of $E$ among $N$-point configurations. We treat $N=14$ by combining
+three-point positive semidefinite kernels with interval estimates and a geometric rigidity argument.
+The kernel method is related to the spherical-code bounds of Bachoc and Vallentin~\cite{BV} and the energy bounds of
+Cohn and Woo~\cite{CohnWoo}. We give the positivity and counting identities needed here explicitly.
+The numerical optimization used to find the certificates is not an assumption of the proof: the resulting rational
+data are checked separately.
+
+\paragraph{Numerical conventions.}
+Terminating decimals denote exact rationals, except for the stored case cutoffs $-0.99$, $-0.98$, $0.8$
+and slack thresholds $0.0459$, $4\cdot10^{-14}$ and $10^{-12}$, which denote their nearest binary64 values.
+The same stored cutoffs are used on both sides of every case distinction. In particular,
+$0.8$ denotes $3602879701896397/4503599627370496$ in these case conditions.
+Approximate decimal values are marked by $\approx$ or an ellipsis.
+
+\paragraph{The candidate.}
+For $h\in(0,1)$ let $r=\sqrt{1-h^2}$ and let $X(h)$ consist of the two poles $\pm e_3$, the six points
+$(r\cos\frac{k\pi}{3},r\sin\frac{k\pi}{3},h)$ ($k=0,\dots,5$), and the six points
+$(r\cos(\frac{k\pi}{3}+\frac{\pi}{6}),r\sin(\frac{k\pi}{3}+\frac{\pi}{6}),-h)$ ($k=0,\dots,5$): two parallel regular hexagons,
+rotated against each other by $30^\circ$, capped by the poles. Its energy is
+\begin{equation}\label{eq:Efam}
+ E(X(h))=\tfrac12+\frac{12}{\sqrt{2-2h}}+\frac{12}{\sqrt{2+2h}}+\frac{15+12/\sqrt3}{r}
+ +\sum_{c\in\{\frac{\sqrt3}{2},0,-\frac{\sqrt3}{2}\}}\frac{12}{\sqrt{2r^2(1-c)+4h^2}} .
+\end{equation}
+
+\begin{lemma}[the candidate]\label{lem:hstar}
+The function $h\mapsto E(X(h))$ has a critical point $\hs$ with
+\begin{align*}
+ \hs &\in 0.45536779516246300350924502372107445741075259468695 \pm 2\cdot 10^{-51},\\
+ \Es:=E(X(\hs)) &\in 69.306363296626421258489991276382007864282129573759 \pm 10^{-49}.
+\end{align*}
+Moreover $\Xs:=X(\hs)$ is a critical point of $E$ on $(\Sph)^{14}$.
+\end{lemma}
+\begin{proof}
+Let $h_0$ be the terminating decimal displayed in the enclosure of $\hs$, and put
+$I_0=[h_0-10^{-40},h_0+10^{-40}]$. The program \path{Certificates/common/enclose_h.py}, using
+\texttt{Arb} at 256 bits, verifies that the derivative of~\eqref{eq:Efam} is negative at the left endpoint,
+positive at the right endpoint, and has positive derivative throughout $I_0$. Thus a unique critical height exists in
+$I_0$. The interval Newton image
+$h_0-E'(h_0)/E''(I_0)$ is contained in $I_0$ and encloses this height.
+Direct interval evaluation on that image verifies both displayed enclosures.
+Criticality of $\Xs$: the configuration $\Xs$ is invariant under the group $D_{6d}$, which acts transitively on each of the
+orbits $\{\pm e_3\}$ and on the twelve ring points.  The gradient $\nabla_{x_i}E(\Xs)$ (projected to $T_{x_i}\Sph$) is fixed by
+the stabiliser of $x_i$.  For a pole the stabiliser contains the rotation by $60^\circ$ about $e_3$, whose only fixed tangent
+vector is $0$.  For a ring point the stabiliser contains the reflection in the vertical plane through $x_i$, so the tangential
+gradient is a multiple $g$ of the meridian direction, and $g$ is the same for all twelve ring points up to the symmetry
+(the improper rotation $S_{12}$ exchanges the rings and reverses the vertical direction).  Consequently the derivative of
+$E$ along the family $X(h)$ equals $12\,g\cdot\frac{d}{dh}(\text{arc length})$, i.e.\ $g$ is a nonzero multiple of
+$\frac{d}{dh}E(X(h))$, which vanishes at $\hs$.  Hence $\nabla E(\Xs)=0$.
+\end{proof}
+
+\begin{theorem}[optimality]\label{thm:main}
+For every configuration $X$ of $14$ distinct points on $\Sph$ one has $E(X)\ge\Es$, with equality if and only if
+$X=Q\Xs$ for some $Q\in O(3)$.
+\end{theorem}
+
+The proof combines the following statements, which are of independent interest.
+
+\begin{theorem}[configurations without a nearly antipodal pair]\label{thm:A}
+Every configuration $X$ of $14$ distinct points on $\Sph$ with $m(X)=\min_{i\ne j}\ip{x_i}{x_j}\ge-0.99$ satisfies
+$E(X)\ge\Es+3.6\cdot10^{-4}$. Every configuration containing two points with $\ip{x_i}{x_j}\ge0.8$ satisfies
+$E(X)\ge\Es+0.086$.
+\end{theorem}
+
+\begin{theorem}[local optimality]\label{thm:B}
+$\Xs$ is a strict local minimizer of $E$: in the gauge coordinates $p$ of Section~\ref{sec:local},
+$E(p)>\Es$ for $0<|p-p^\ast|_2\le0.0075$. Moreover (Lemma~\ref{lem:rigidity}) every configuration whose inner products
+are within $\tau\le10^{-3}$ of those of $\Xs$ (in the sense made precise there) satisfies $|p-p^\ast|_2\le23\,\tau$.
+\end{theorem}
+
+\begin{theorem}[the cap]\label{thm:C}
+Let $X$ be a configuration with $m(X)\le-0.99$, all of whose inner products are smaller than $0.8$, and $E(X)\le\Es$. Then
+$X$ satisfies the hypotheses (i)--(iii) of Lemma~\ref{lem:rigidity} with $\tau=\TUBE$; in particular every inner product
+of $X$ lies within $\TUBE$ of an inner product of the corresponding pair class of $\Xs$.
+\end{theorem}
+
+The nine distinct inner products occurring in $\Xs$ are
+\begin{equation}\label{eq:nodes}
+ -1,\ \pm\hs,\ \tfrac{1+h^{2}}{2},\ \tfrac{3h^2-1}{2},\ 2h^2-1,\ -h^2+\tfrac{\sqrt3}{2}(1-h^2),\ -h^2,\ -h^2-\tfrac{\sqrt3}{2}(1-h^2)
+ \qquad(h=\hs),
+\end{equation}
+numerically $-1,\ \pm0.455368,\ 0.603680,\ -0.188960,\ -0.585280,\ 0.479087,\ -0.207360,\ -0.893806$.
+In particular $m(\Xs)=-1$ is attained exactly by the pole pair, and every other inner product of $\Xs$ is $\ge -0.8939$.
+
+%======================================================================
+\section{Strategy of the proof}\label{sec:strategy}
+%======================================================================
+By compactness of $(\Sph)^{14}$ and since $E\to\infty$ when two points collide, a minimizer exists. Let $X$ be any
+configuration with $E(X)\le\Es$, let $m=m(X)$ be its minimal inner product, attained by a pair $\{P,Q\}$ (the
+\emph{minimal pair}; we fix one if several pairs attain $m$), and let $M(X)$ be its maximal inner product.
+\begin{enumerate}[label=(\Roman*)]
+\item[(0)] $M(X)\ge0.8$ is impossible: an untyped three-point bound together with a counting argument gives
+      $E(X)\ge\Es+0.086$ (Proposition~\ref{prop:sep}).
+\item $m\ge-0.98$ is impossible: an untyped three-point bound (Section~\ref{sec:case1}) gives $E(X)\ge e_{\rm I}>\Es$.
+\item $-0.99\le m\le-0.98$ is impossible: a typed three-point bound with shares ($P/R$ typing,
+      Section~\ref{sec:slabs}) gives $E(X)\ge e_{\rm II}>\Es$.
+\item $-1\le m\le-0.99$ (the \emph{cap}) and $M(X)<0.8$. This class contains $\Xs$.
+      A typed certificate ($P/R$ typing, degree $20$), with an energy offset just below $\Es$ and a quantitative
+      positive lower bound away from the triple types of $\Xs$, shows that
+      all inner products of $X$ are within $\TUBE$ of those of $\Xs$ (Theorem~\ref{thm:C}, Section~\ref{sec:cap}).
+      The rigidity lemma (Section~\ref{sec:rigidity}) then puts $X$, after an orthogonal change of coordinates, into a
+      neighbourhood of $\Xs$ in which $\Xs$ is the unique minimizer by a quantitative second-order argument
+      (Section~\ref{sec:local}).
+\end{enumerate}
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Let $E(X)\le\Es$. By Theorem~\ref{thm:A}, $M(X)<0.8$ and $m(X)<-0.99$. By Theorem~\ref{thm:C} the hypotheses of
+Lemma~\ref{lem:rigidity} hold with $\tau=\TUBE$, hence $|p-p^\ast|_2\le23\tau=0.004485<0.0075$ after an
+orthogonal map, and Proposition~\ref{prop:local} gives $p=p^\ast$, i.e.\ $X=Q\Xs$ with $Q\in O(3)$, and in particular
+$E(X)=\Es$. Hence no configuration has energy below $\Es$, and the configurations of energy $\Es$ are exactly the images
+of $\Xs$ under $O(3)$.
+\end{proof}
+
+%======================================================================
+\section{Three-point bounds with typed kernels}\label{sec:bounds}
+%======================================================================
+
+\subsection{Positive definite kernels relative to a root point}
+Write $u=\ip{x}{y}$, $v=\ip{x}{z}$, $t=\ip{y}{z}$ for three points $x,y,z\in\Sph$ and define polynomials
+$Q_k(u,v,t)$ by $Q_0=1$, $Q_1=t-uv$ and
+\[
+ Q_k=2(t-uv)\,Q_{k-1}-(1-u^2)(1-v^2)\,Q_{k-2}\qquad(k\ge2).
+\]
+If $|u|,|v|<1$ then $Q_k(u,v,t)=\big((1-u^2)(1-v^2)\big)^{k/2}\cos(k\theta)$, where $\theta$ is the angle between the
+projections of $y$ and $z$ to the plane $x^\perp$. For $k,i,j\ge0$ let $T_i$ denote the Chebyshev polynomials.
+
+\begin{lemma}[positivity]\label{lem:pd}
+Let $x\in\Sph$, let $Y\subset\Sph$ be finite, let $\tau:Y\to\{1,\dots,T\}$ be arbitrary ("types"), for every type
+$\sigma$ and every $k$ let $p^{(k)}_{\sigma,0},\dots,p^{(k)}_{\sigma,n_{k,\sigma}-1}$ be real polynomials, and let
+$F^{(k)}=\big(F^{(k)}_{(\sigma,i),(\sigma',j)}\big)$ be real symmetric positive semidefinite matrices. Then
+\[
+ \sum_{y,z\in Y}\ \sum_{k\ge 0}\ \sum_{i,j} F^{(k)}_{(\tau(y),i),(\tau(z),j)}\,p^{(k)}_{\tau(y),i}(\ip{x}{y})\,p^{(k)}_{\tau(z),j}(\ip{x}{z})\,
+ Q_k(\ip{x}{y},\ip{x}{z},\ip{y}{z})\ \ge\ 0 ,
+\]
+where the sum runs over all ordered pairs, including $y=z$ and $y=x$ or $z=x$ if $x\in Y$.
+\end{lemma}
+\begin{proof}
+For $k=0$ put $w_y=1$ for every $y$. For $k\ge1$ and $y\neq\pm x$ write
+$w_y=(1-\ip{x}{y}^2)^{k/2}e^{\mathrm{i}k\alpha_y}$ with $\alpha_y$ the azimuth of $y$ around $x$,
+and $w_y=0$ if $y=\pm x$ and $k\ge1$. Then $Q_k(\ip{x}{y},\ip{x}{z},\ip{y}{z})=\operatorname{Re}(w_y\overline{w_z})$ for all
+$y,z$ (by continuity also in the degenerate cases), and the inner sum equals
+$\operatorname{Re}\,\xi^{*}F^{(k)}\xi\ge 0$ with $\xi=\sum_{y}w_y\,e_{\tau(y)}\otimes\big(p^{(k)}_{\tau(y),i}(\ip{x}{y})\big)_i$.
+\end{proof}
+Our certificates use $p^{(k)}_{\sigma,i}=T_i$, with $0\le i\le K-k$.
+In the cap certificate only, a kernel rooted at a pole uses the smaller pole-type basis
+$0\le i<\min(K-k+1,2)$; its arguments of that type are evaluated only at $\ip PQ$ and $1$.
+All other type blocks use the full basis.
+
+\subsection{Types, pair classes, shares and slacks}
+Fix a partition of the $14$ points into types $1,\dots,T$ with prescribed cardinalities $n_1,\dots,n_T$. For a root type
+$X$ and $k=0,\dots,K$ let $F_X^{(k)}\PSD$ be as in Lemma~\ref{lem:pd} ($n_k=K-k+1$), and for a point $x$ of type $X$ and
+points $y,z$ define the kernel
+\[
+ K_x(y,z)=\sum_{k=0}^{K}\sum_{i,j}F^{(k)}_{X,(\tau(y),i),(\tau(z),j)}\,T_i(u)\,T_j(v)\,Q_k(u,v,t).
+\]
+For a root type $X$ and a type $\sigma$ put
+\begin{align*}
+ g_X(s;\sigma)&=\sum_{k}\ \big(T(s)^{\!\top}F^{(k)}_{X,\sigma\sigma}T(s)\big)(1-s^2)^k
+ +2\sum_{i,j}F^{(0)}_{X,(X,i),(\sigma,j)}T_i(1)T_j(s),\\
+ \mathrm{sing}_X&=\sum_{i,j}F^{(0)}_{X,(X,i),(X,j)}
+\end{align*}
+(the contributions of the degenerate pairs $y=z$ and $\{y,z\}\ni x$), and for a pair class $\{a,b\}$ of types
+\[
+ \Psi_{ab}(s)=\varphi(s)-g_a(s;b)-g_b(s;a).
+\]
+For every pair class $\{a,b\}$ and every type $c$ we choose a univariate function $\psi_{ab\to c}$ (the \emph{share} that a
+pair of types $a,b$ gives to a third vertex of type $c$) such that
+\begin{equation}\label{eq:sharesum}
+ \sum_c m_c(ab)\,\psi_{ab\to c}=\Psi_{ab},\qquad m_c(ab)=n_c-[c=a]-[c=b]
+\end{equation}
+($m_c(ab)$ is the number of third vertices of type $c$ available to a pair of types $a,b$). In our certificates all shares but
+one per class are polynomials, and the remaining one is determined by \eqref{eq:sharesum}; it carries the singular part of
+$\varphi$. Finally we choose constants $c_{abc}$ for every pattern $\{a,b,c\}$ of three types with
+\begin{equation}\label{eq:constsum}
+ \sum_{\text{triples }T}c_{T}=e+\sum_{x}\mathrm{sing}_{\tau(x)} .
+\end{equation}
+For a triple $T=\{x,y,z\}$ of points define the \emph{slack}
+\begin{equation}\label{eq:slack}
+\begin{aligned}
+ \lambda_T={}&\psi_{\tau(y)\tau(z)\to\tau(x)}(\ip{y}{z})+\psi_{\tau(x)\tau(z)\to\tau(y)}(\ip{x}{z})
+ +\psi_{\tau(x)\tau(y)\to\tau(z)}(\ip{x}{y})\\
+ &-2\big(K_x(y,z)+K_y(x,z)+K_z(x,y)\big)-c_T .
+\end{aligned}
+\end{equation}
+It depends only on the pattern of $T$ and on the three inner products of $T$.
+
+\begin{proposition}[fundamental identity]\label{prop:identity}
+For every configuration $X$ of $14$ points carrying types with the prescribed cardinalities,
+\[
+  E(X)-e=\sum_{T}\lambda_T+\sum_{x\in X}\ \sum_{y,z\in X}K_x(y,z)\ \ge\ \sum_T\lambda_T ,
+\]
+the first sum running over the $\binom{14}{3}=364$ triples.
+\end{proposition}
+\begin{proof}
+Split $\sum_x\sum_{y,z}K_x(y,z)$ according to the coincidences among $x,y,z$. Terms with $x,y,z$ distinct contribute
+$2\sum_T\big(K_x(y,z)+K_y(x,z)+K_z(x,y)\big)$ ($K_x(y,z)=K_x(z,y)$ by symmetry of $F$). Terms with exactly two coincident
+points: $y=z\neq x$ gives $\sum_k T(u)^\top F^{(k)}_{\tau(y)\tau(y)}T(u)(1-u^2)^k$ since $Q_k(u,u,1)=(1-u^2)^k$;
+$y=x\neq z$ or $z=x\neq y$ give $\sum_{i,j}F^{(0)}_{(X,i),(\tau(z),j)}T_i(1)T_j(v)$ each, since $Q_k(1,v,v)=0$ for $k\ge1$.
+Together these give $\sum_{\{x,y\}}\big(g_{\tau(x)}(\ip xy;\tau(y))+g_{\tau(y)}(\ip xy;\tau(x))\big)$. Terms $x=y=z$ give
+$\sum_x\mathrm{sing}_{\tau(x)}$. Hence
+\[
+ \sum_{\{x,y\}}\varphi(\ip xy)=\sum_{\{x,y\}}\Psi(\ip xy)+\sum_x\sum_{y,z}K_x(y,z)-2\sum_T\sum_{\text{roots}}K-\sum_x\mathrm{sing}_{\tau(x)} .
+\]
+Every pair $\{x,y\}$ of types $\{a,b\}$ lies in exactly $m_c(ab)$ triples whose third vertex has type $c$; by
+\eqref{eq:sharesum}, $\Psi_{ab}(\ip xy)=\sum_{T\ni x,y}\psi_{ab\to\tau(T\setminus\{x,y\})}(\ip xy)$. Summing over pairs and
+regrouping by triples, and using \eqref{eq:constsum}, gives the identity. The inequality is Lemma~\ref{lem:pd}.
+\end{proof}
+
+\begin{corollary}\label{cor:bound}
+Let $\mathcal D_{\pi}\subset[-1,1]^3$ be sets containing all inner-product types $(u,v,t)$ that triples of pattern $\pi$
+can have in the class of configurations under consideration. If each slack function is nonnegative on the corresponding
+$\mathcal D_\pi$, then $E(X)\ge e$ for all configurations in the class.
+\end{corollary}
+
+\paragraph{The typings used.}
+\begin{itemize}
+\item \emph{Untyped} ($T=1$): used in Case I; here we use the symmetric variant of~\cite{CohnWoo} (see Section~\ref{sec:case1}).
+\item \emph{P/R typing}: $P$ = the minimal pair ($n_P=2$), $R$ = the other $12$ points. Patterns $PPR$ ($12$ triples),
+$PRR$ ($132$), $RRR$ ($220$). With the shares $\psi_{PP\to R}=\Psi_{PP}/12$,
+$\psi_{PR\to P}=\psi_{Ba}$, $\psi_{PR\to R}=(\Psi_{PR}-\psi_{Ba})/11$, $\psi_{RR\to P}=\psi_{Cb}$,
+$\psi_{RR\to R}=(\Psi_{RR}-2\psi_{Cb})/10$, equation~\eqref{eq:sharesum} holds for each pair class.
+If $m\in[a,b]$ then: $PPR$ types $(u,v,t)=(\ip PQ,\ip Pr,\ip Qr)$ satisfy $u\in[a,b]$, $v,t\ge u$; all other inner
+products are $\ge a$.
+\end{itemize}
+
+%======================================================================
+\section{Rigorous verification of slack positivity}\label{sec:verif}
+%======================================================================
+The four files named \texttt{certificate.json} in the directories listed in Appendix~\ref{sec:repro}
+are the exact certificate data. They specify the energy offset, kernel matrices, polynomial coefficients and
+Coulomb weights as rational numbers. The cap file also contains its factorizations and rational node centres.
+These fixed data are verified as follows:
+\begin{enumerate}[label=(\alph*)]
+\item In Cases 0--II, every kernel matrix is proved positive definite by an exact $LDL^\top$
+test over $\Q$. For Case III, the exact factorizations in Section~\ref{sec:capcert} prove positive semidefiniteness.
+\item The program \path{audit_identity.py} checks the energy identity coefficient by coefficient over $\Q$,
+including constants, pair multiplicities and the weights of $\varphi$. No floating-point reconstruction
+of the kernel matrices is needed.
+\item The slack functions are written exactly as $\lambda=\sum_q w_q\varphi(x_q)+P(u,v,t)$ with rational weights $w_q$ and a
+polynomial $P\in\Q[u,v,t]$ computed in exact rational arithmetic (by expanding the definitions of
+Section~\ref{sec:bounds}); exact invariance of $P$ under the relabelling symmetries of the pattern is checked, which allows
+us to restrict to a fundamental domain.
+\item Nonnegativity of $\lambda$ on its domain (or $\lambda\ge\theta$ for a threshold $\theta>0$ outside prescribed balls,
+see Section~\ref{sec:cap}) is proved by the branch-and-bound program \path{bnb_global4} described next.
+\end{enumerate}
+The untyped certificates in Cases 0 and I use the normalization $4(E-e)$; the typed certificates use $E-e$.
+The identity checker verifies these normalizations independently. Numerical optimization was used only to propose
+the data, and is not part of the verification.
+
+\paragraph{The branch-and-bound verifier.}
+The domain is a union of root cells $\prod_i[c_i-r_i,c_i+r_i]$ (cells which provably miss the Gram set
+$\{G\ge0\}$, $G=1+2uvt-u^2-v^2-t^2$, or violate a linear constraint are dropped by an exact rational test).
+For every root cell the Taylor coefficients of $P$ at the cell centre $c$ (a double precision number, hence an exact
+rational) are computed exactly over $\Q$ and rounded outward to intervals.  All further computations use interval
+arithmetic with outward rounding after every operation (the program is compiled without value-changing floating-point
+optimisations).  A cell is processed as follows.
+\begin{enumerate}[label=(\roman*)]
+\item The polynomial part is bounded on $|z_i|\le r_i$ ($z=x-c$) by $p_0+\sum_{\alpha\ne0}|p_\alpha|\,r^\alpha[-1,1]$.
+\item The function $\varphi$ is expanded as $\varphi(c_q+z_q)=\varphi(c_q)\sum_{k\le D}\beta_k\big(z_q/(1-c_q)\big)^k$,
+$\beta_k=\binom{2k}{k}4^{-k}\le1$, with the tail bounded by $\varphi(c_q)\varrho^{D+1}/(1-\varrho)$, $\varrho=r_q/(1-c_q)$,
+if $\varrho<\tfrac12$; otherwise, using $w_q>0$ and the monotonicity of $\varphi$, by the constant $w_q\varphi(c_q-r_q)$.
+The coefficients are enclosed by the interval recurrence $\beta_0=1$,
+$\beta_k=\beta_{k-1}(2k-1)/(2k)$; no heuristic allowance for accumulated rounding is used.
+\item If $G$ or a linear constraint $\ell\ge0$ of the domain changes sign on the cell, the lower bound is computed for
+$\lambda-\sum_k\mu_kg_k$ ($g_k\in\{G,\ell\}$, $\mu_k\ge0$), which is $\le\lambda$ on the domain (S-procedure). The
+multipliers are chosen heuristically (least squares on the gradients at the centre, followed by a coordinate ascent of the
+resulting lower bound over the break points of this concave piecewise linear function); any choice $\mu\ge0$ is valid.
+\item A cell is accepted if the lower bound is $\ge\theta$, discarded if $G<0$ or some $\ell<0$ on the whole cell, or if it
+lies inside one of the excluded balls; otherwise it is bisected along its longest side, and the Taylor data of the
+children are obtained from those of the parent by an interval Taylor shift by the exact double $\pm h$.
+\item The \emph{true} centre of a child is the real number $c\pm h$, whose double precision representation may be rounded.
+The rounding error is computed exactly (TwoSum) and accumulated, rounded upwards, in an error radius $e$; all geometric tests
+use the half widths $r+e$, and all quantities evaluated at the centre (Gram polynomial, $\varphi$-coefficients, values of
+the linear constraints) are evaluated on the interval $[c-e,c+e]$. (In all our runs $e\le 4\cdot10^{-16}$.)
+\end{enumerate}
+The run succeeds if every cell is accepted or discarded before its width drops below a prescribed minimum.
+A second program, \path{bnb_local3}, works in the same way in node-adapted coordinates around the nodes of $\Xs$; it is
+described in Section~\ref{sec:cap}.
+
+\paragraph{Implementation and audit.}
+All current global results use \path{bnb_global4}; the local calculations use \path{bnb_local3}.
+Both traverse the tree depth first using OpenMP tasks, with a fixed depth limit. A depth or resource limit, an unresolved
+cell, an input parsing failure, or an early abort prevents a verified result. The programs require IEEE binary64 arithmetic in
+round-to-nearest mode and are compiled with \texttt{-ffp-contract=off -fno-fast-math}.
+Each elementary arithmetic interval is enlarged using \texttt{nextafter}; square roots and reciprocals are likewise
+enclosed. Degrees are at most $40$, so the integer binomial coefficients used in Taylor shifts are exactly representable.
+Every discarded node ball is covered by an independently checked local region.
+The complete source of both verifiers is included in \path{Certificates/common/}.
+
+%======================================================================
+\section{Case I: a lower bound on every inner product}\label{sec:case1}
+%======================================================================
+For the untyped bound we use symmetric three-point kernels, as in~\cite{CohnWoo}: for
+$k=0,\dots,K$ let $F_k\PSD$ be indexed by $0\le i,j\le K-k$, put $S_k(u,v,t)=\big(T_i(u)T_j(v)Q_k(u,v,t)\big)_{ij}$ and
+\[
+ R_k(u,v,t)=\sum_{\pi\in S_3}S_k(\pi(u,v,t))+\frac{1}{N-2}\sum_{w\in\{u,v,t\}}\,\sum_{\pi\in S_3}S_k(\pi(w,w,1))
+ +\frac{6\,\delta_{k0}}{(N-1)(N-2)}J .
+\]
+The slack of a triple with inner products $(u,v,t)$ is
+\[
+ \lambda(u,v,t)=\tfrac13\big(\varphi(u)+\varphi(v)+\varphi(t)\big)-\frac{e}{\binom N2}-\sum_k\ip{F_k}{R_k(u,v,t)},
+\]
+and exactly as in Proposition~\ref{prop:identity} one obtains
+$4(E(X)-e)=\sum_T\lambda_T+(\text{PSD terms})\ge\sum_T\lambda_T$. Hence:
+
+\begin{proposition}\label{prop:caseI}
+If $\lambda\ge0$ on $\{(u,v,t)\in[a,1)^3:\ 1+2uvt-u^2-v^2-t^2\ge0\}$, then $E(X)\ge e$ for every configuration $X$ all of whose
+inner products are $\ge a$.
+\end{proposition}
+
+\paragraph{Certificate.} The degree-$40$ certificate in \path{CaseI_a-0.98_D40/certificate.json}
+has the following verified bounds; the decimal energy and gap in the table are approximate:
+\begin{center}
+\begin{tabular}{llllr}
+\toprule
+$a$ & degree & certified $e$ & $e-\Es$ & cells (failures)\\
+\midrule
+$-0.98$ & $40$ & $69.30715094\ldots$ & $+7.877\cdot10^{-4}$ & $376\,059$ ($0$)\\
+\bottomrule
+\end{tabular}
+\end{center}
+The exact offset is $e_{\rm I}=163646883327020528602849/2361183241434822606848$.
+The positivity verification uses \path{bnb_global4}.
+
+\subsection{A priori separation of the points}\label{sec:sep}
+The untyped slack also bounds the largest inner product of any competitor.
+The cutoff $t_0=0.8$ uses the numerical convention in Section~1.
+
+\begin{proposition}[separation]\label{prop:sep}
+Every configuration $X$ of $14$ distinct points on $\Sph$ which contains two points with $\ip{x_i}{x_j}\ge t_0=0.8$
+satisfies $E(X)\ge\Es+0.086$. Consequently all inner products of a configuration with $E(X)\le\Es$ are smaller than $t_0$.
+\end{proposition}
+\begin{proof}
+Let $(e,F_0,\dots,F_K)$ be an untyped certificate whose slack satisfies
+\begin{equation}\label{eq:sep}
+ \lambda\ge0\ \text{ on }\{(u,v,t)\in[-1,1)^3:\ G\ge0\},\qquad
+ \lambda\ge c\ \text{ on the subset where }\max(u,v,t)\ge t_0 .
+\end{equation}
+If $\ip{x_i}{x_j}\ge t_0$, then each of the $12$ triples containing $x_i$ and $x_j$ has slack $\ge c$, and all other
+slacks are nonnegative. Since $4(E(X)-e)\ge\sum_T\lambda_T$ (the identity preceding Proposition~\ref{prop:caseI}), we get
+$E(X)\ge e+3c$. The degree-$16$ certificate in
+\path{Case0_separation_T0.8_D16/certificate.json} has
+\[
+ e_0=\tfrac{5110096645419161624321}{73786976294838206464}=69.25472355\ldots=\Es-0.05163\ldots,\qquad c=0.0459 .
+\]
+By the exact $S_3$-symmetry of the slack it suffices to consider $u\le v\le t$, where the second set is $\{t\ge t_0\}$.
+\path{bnb_global4} verifies both parts of \eqref{eq:sep}: $29\,287$ cells for $\lambda\ge0$ and $10\,041$ cells for
+$\lambda\ge c$ on $\{t\ge t_0\}$, without failures. Hence $E(X)\ge e_0+3c=69.39242\ldots>\Es+0.086$.
+\end{proof}
+Proposition~\ref{prop:sep} allows us to intersect all slack
+domains of Case~III with $\{u,v,t\le t_0\}$; this removes the region of nearly coincident points, where the kernel
+polynomials have to follow the singularity of $\varphi$.
+
+%======================================================================
+\section{Case II: the intermediate slab}\label{sec:slabs}
+%======================================================================
+We use the $P/R$ typing with shares of Section~\ref{sec:bounds} with $K=10$ and polynomial shares of degree $20$.
+For $m\in[-0.99,-0.98]$ the slack domains are (Corollary~\ref{cor:bound}):
+$PPR$: $u\in[-0.99,-0.98]$, $v,t\ge u$; $PRR$ and $RRR$: all inner products $\ge-0.99$.
+By the exact invariance of the slack polynomials (checked) we may restrict to $t\ge v$ for $PPR$, $v\ge u$ for $PRR$ and
+$u\le v\le t$ for $RRR$. The exact certificate in \path{Slab_m099_m098/certificate.json} has
+\[
+ e_{\rm II}=\tfrac{20455735517135044064649}{295147905179352825856}=69.30672777\ldots,\qquad e_{\rm II}-\Es\approx3.645\cdot10^{-4},
+\]
+and \path{bnb_global4} verifies nonnegativity of the three slacks ($53\,303$, $219\,381$ and $76\,285$ cells for $PPR$, $PRR$, $RRR$; no failures).
+Together with Case~I (certificate for $a=-0.98$) this excludes all configurations with $m\ge-0.99$.
+
+%======================================================================
+\section{Case III: the nearly antipodal cap}\label{sec:cap}
+%======================================================================
+Throughout this section $X$ is a configuration with $m(X)=\ip PQ\in[-1,-0.99]$, $\{P,Q\}$ a minimal pair, all of whose
+inner products are smaller than $t_0=0.8$ (Proposition~\ref{prop:sep}), and we use the $P/R$ typing of
+Section~\ref{sec:bounds} with $K=10$ (degree $20$). For every point $x\ne P,Q$ we have
+$\ip Px=\ip{P+Q}{x}-\ip Qx>-|P+Q|-t_0>-0.1415-t_0>-c_1$ with $c_1:=0.9416$ (note $|P+Q|=\sqrt{2+2m}<0.1415$), and
+likewise for $Q$. The slack domains
+are therefore
+\begin{align*}
+ \mathcal D_{PPR}&=\{u\in[-1,-0.99],\ v,t\in[-c_1,t_0],\ v,t\ge u,\ G\ge0\},\\
+ \mathcal D_{PRR}&=\{u,v\in[-c_1,t_0],\ t\in[-1,t_0],\ G\ge0\},\qquad
+ \mathcal D_{RRR}=\{(u,v,t)\in[-1,t_0]^3:\ G\ge0\}.
+\end{align*}
+Since $\Xs$ belongs to this class, a nonnegative-slack certificate cannot have $e>\Es$.
+We use $e<\Es$ together with quantitative slack bounds to localize a competitor, then apply local minimality.
+
+\subsection{Nodes and class values}
+The inner-product types $s^\ast=(u,v,t)$ of the triples of $\Xs$, in all orderings compatible with the pattern, are the
+\emph{nodes} of the pattern; $\mathcal N_\pi$ denotes the set of nodes of the pattern $\pi$ and
+\[
+ d_\pi(s)=\min_{s^\ast\in\mathcal N_\pi}|s-s^\ast|_2\qquad(s\in\R^3).
+\]
+With $h=\hs$ and $G_=$, $G_{\ne}$ as in Section~\ref{sec:rigidity}: $\mathcal N_{PPR}=\{(-1,h,-h),(-1,-h,h)\}$;
+$\mathcal N_{PRR}$ consists of the $12$ points $(\sigma h,\sigma'h,g)$ with $\sigma,\sigma'\in\{\pm1\}$, $g\in G_=$ if
+$\sigma=\sigma'$ and $g\in G_{\ne}$ otherwise; $\mathcal N_{RRR}$ consists of the $55$ ordered types of three ring points of
+$\Xs$. The $PPR$ nodes lie on the edge $\{u=-1\}\cap\{G=0\}$ of the domain, the nodes $(\pm h,\pm h,h^2-r^2)$ of $PRR$ lie
+on the Gram surface $\{G=0\}$ (the three points are coplanar with the centre); all other nodes are interior points.
+
+The pairs of points of $X$ fall into three \emph{pair classes} with the \emph{class values}
+\[
+ V_{PP}=\{-1\},\qquad V_{PR}=\{h,-h\},\qquad V_{RR}=G_=\cup G_{\ne}
+\]
+(the inner products of the corresponding pairs of $\Xs$). Every coordinate of a node is a class value of the pair class
+of that coordinate. Consequently
+\begin{equation}\label{eq:coord}
+ \begin{gathered}
+ \text{if a coordinate of $s$ is at distance $\ge\delta$ from its pair-class values,}\\
+ \text{then }d_\pi(s)\ge\delta.
+ \end{gathered}
+\end{equation}
+
+\subsection{Three analytic reductions}
+\begin{lemma}[counting]\label{lem:count}
+Let $(e,\lambda)$ be a $P/R$-typed certificate with $\lambda_\pi\ge0$ on $\mathcal D_\pi$ for all patterns, and let
+$\tau,\theta>0$ be such that $\lambda_\pi(s)\ge\theta$ for all $s\in\mathcal D_\pi$ with $d_\pi(s)\ge\tau$. If
+$E(X)-e<12\,\theta$, then every inner product of $X$ lies within $\tau$ of a class value of its pair class.
+\end{lemma}
+\begin{proof}
+Suppose that the inner product of a pair $\{x,y\}$ has distance $\ge\tau$ from all class values of its class. The pair lies
+in exactly $12$ triples $\{x,y,z\}$, and by \eqref{eq:coord} each of them has a type with $d_\pi\ge\tau$, hence a slack
+$\ge\theta$. All other slacks are nonnegative, so Proposition~\ref{prop:identity} gives
+$E(X)-e\ge\sum_T\lambda_T\ge12\,\theta$.
+\end{proof}
+Thus the threshold which defines the tubes around the nodes only has to exceed $(E(X)-e)/12$ instead of $E(X)-e$: the
+energy excess is shared by the twelve triples through a displaced pair. Moreover the conclusion concerns pairs, which
+is what Lemma~\ref{lem:rigidity} requires. (The same device was used in Proposition~\ref{prop:sep}.)
+
+\begin{lemma}[sign coupling]\label{lem:sign}
+Let $0<\tau\le10^{-3}$, $|\ip PQ+1|\le\tau$, and let $x\in\Sph$ satisfy $|\ip Px-\sigma h|\le\tau$ and
+$|\ip Qx-\sigma'h|\le\tau$ with $\sigma,\sigma'\in\{\pm1\}$. Then $\sigma'=-\sigma$.
+\end{lemma}
+\begin{proof}
+$|\ip Px+\ip Qx|=|\ip{P+Q}{x}|\le|P+Q|=\sqrt{2+2\ip PQ}\le\sqrt{2\tau}<0.05$, whereas $\sigma'=\sigma$ would give
+$|\ip Px+\ip Qx|\ge2h-2\tau>0.9$.
+\end{proof}
+
+\begin{lemma}[class coupling]\label{lem:class}
+Let $\gamma=\min\{|g-g'|:\ g\in G_=,\ g'\in G_{\ne}\}>0.018$, as verified in ball arithmetic,
+and let $0<\tau\le10^{-3}$. Let $x,y$
+satisfy $|\ip Px-\sigma h|\le\tau$, $|\ip Py-\sigma'h|\le\tau$ and $|\ip xy-g|\le\tau$, where $g\in G_=\cup G_{\ne}$ is of
+the \emph{wrong} class ($g\in G_{\ne}$ if $\sigma=\sigma'$, $g\in G_=$ otherwise). Then the type $s$ of the triple
+$\{P,x,y\}$ satisfies $d_{PRR}(s)\ge\gamma-\tau>0.017$.
+\end{lemma}
+\begin{proof}
+A node $(\varrho h,\varrho'h,g^\ast)$ with $(\varrho,\varrho')\ne(\sigma,\sigma')$ has distance $\ge2h-\tau$ from $s$. A node
+with $(\varrho,\varrho')=(\sigma,\sigma')$ has $g^\ast$ in the right class, hence
+$|\ip xy-g^\ast|\ge|g-g^\ast|-\tau\ge\gamma-\tau$.
+\end{proof}
+
+\subsection{Sufficient certificate inequalities}
+\begin{proposition}\label{prop:cap}
+Let $(e,\lambda)$ be a $P/R$-typed certificate with $e\le\Es$ and let $\tau,\theta_{\rm loc},\theta_{\rm far},\rho_1>0$ be
+such that for every pattern $\pi$
+\begin{align}
+ \lambda_\pi&\ge0 &&\text{on }\mathcal D_\pi, \label{eq:c1}\\
+ \lambda_\pi&\ge\theta_{\rm loc} &&\text{on }\{s\in\mathcal D_\pi:\ d_\pi(s)\ge\tau\}, \label{eq:c2}\\
+ \lambda_\pi&\ge\theta_{\rm far} &&\text{on }\{s\in\mathcal D_\pi:\ d_\pi(s)\ge\rho_1\}, \label{eq:c3}
+\end{align}
+where $12\,\theta_{\rm loc}>\Es-e$, $\theta_{\rm far}>\Es-e$, $\tau\le10^{-3}$ and $\rho_1\le0.017$. Then every configuration
+$X$ of the class of this section with $E(X)\le\Es$ satisfies the hypotheses (i)--(iii) of Lemma~\ref{lem:rigidity} with
+this $\tau$.
+\end{proposition}
+\begin{proof}
+By Lemma~\ref{lem:count} (with $\theta=\theta_{\rm loc}$) every inner product of $X$ is within $\tau$ of a class value of
+its class. Hence $|\ip PQ+1|\le\tau$, which is (i), and for every $x_i$ there are signs with
+$|\ip P{x_i}-\sigma_ih|\le\tau$, $|\ip Q{x_i}-\sigma_i'h|\le\tau$; by Lemma~\ref{lem:sign}, $\sigma_i'=-\sigma_i$, which is
+(ii). For $i\ne j$ the inner product $\ip{x_i}{x_j}$ is within $\tau$ of some $g\in G_=\cup G_{\ne}$. If $g$ were of the wrong
+class, the triple $T=\{P,x_i,x_j\}$ would satisfy $d_{PRR}\ge0.017\ge\rho_1$ by Lemma~\ref{lem:class}, hence by
+\eqref{eq:c3}, \eqref{eq:c1} and Proposition~\ref{prop:identity}
+\[
+ \theta_{\rm far}\le\lambda_T\le\sum_{T'}\lambda_{T'}\le E(X)-e\le\Es-e<\theta_{\rm far},
+\]
+a contradiction. This gives (iii).
+\end{proof}
+Only inner products, i.e.\ the patterns $PPR$ and $PRR$, enter the rigidity lemma; the $RRR$ slack is needed for
+\eqref{eq:c1} and for the counting.
+
+
+
+\subsection{The certificate}\label{sec:capcert}
+\paragraph{Construction and exact data.}
+The cap data are in \path{CaseIII_cap_D20/certificate.json}. The search used facial reduction,
+$F=NGN^\top$, and a degree-$20$ conic optimization problem with sampled slack and
+node-derivative constraints. These steps only produce candidate data. For verification, $N$ and $G$ are fixed rational
+matrices, and the identities $F=NGN^\top$ and $G\succ0$ are checked exactly. No claim that the rational $N$ spans an
+exact null space of the candidate moment matrix is needed.
+
+Set $\delta_0=\DELTAZ$ and
+\[
+ e=\Es_{\rm lo}-364\delta_0,\qquad
+ \Es_{\rm lo}=69306363296626421258489991276382007864282129573758\cdot10^{-48}.
+\]
+The enclosure of Lemma~\ref{lem:hstar} proves $\Es_{\rm lo}\le\Es$ and
+\[
+ e=\frac{34653181648313028629244995638191003932141064786879}{5\cdot10^{47}},
+ \qquad 0<\Es-e<3.65\cdot10^{-13}.
+\]
+The stored slacks have the exact form $\sum_q w_q\varphi(x_q)+P(u,v,t)$ with $w_q\in\Q_{>0}$ and
+$P\in\Q[u,v,t]$. The program \path{audit_identity.py} checks the fundamental energy identity
+coefficient by coefficient over $\Q$, directly from the stored kernel matrices and slack polynomials.
+It also checks every relabelling symmetry, including the singular weights. Thus one may restrict to
+$t\ge v$ for $PPR$, $v\ge u$ for $PRR$, and $u\le v\le t$ for $RRR$.
+
+For each node we use a rational approximation $\tilde s$. The program \path{audit_geometry.py} enumerates the triple
+types of the two regular hexagons and the poles using their exact symbolic pair classes, and verifies in ball arithmetic
+that the archived list contains all $2+12+55$ nodes and that $|\tilde s-s^\ast|<10^{-50}$.
+The stored centres and matrices are rational approximations; no exact interpolation or stationarity
+condition at these centres is assumed. The verification below uses the actual rational
+Taylor coefficients and explicitly bounds their nonzero constant and linear terms.
+
+\paragraph{Local coordinates and coverage.}
+For each fundamental-domain node, the cap certificate supplies a rational matrix $M$ and positive rational
+numbers $s_1,s_2,s_3$, together with the norm bound and multipliers used below. These are stored in the
+\path{local_coordinates} field. Numerical diagonalization was used to propose these data;
+reproduction uses the stored rational values.
+Define
+\[
+ x=\tilde s+My,\qquad
+ \mathcal E=\left\{y:\sum_i y_i^2/s_i^2\le1\right\},\qquad
+ R_{\rm out}=0.01,\quad \rho_g=0.0095.
+\]
+All matrix inequalities subsequently used are checked over $\Q$. With $S=\operatorname{diag}(s_1,s_2,s_3)$,
+positive definiteness of
+\[
+ R_{\rm out}^2 S^{-2}-M^\top M,\qquad
+ M^\top M-(\rho_g+10^{-14})^2S^{-2},\qquad
+ c_M^2 I-M^\top M
+\]
+proves, respectively, that $|My|\le R_{\rm out}$ on $\mathcal E$, that
+$M\mathcal E$ contains $B(0,\rho_g+10^{-14})$, and that $\|M\|_2\le c_M$.
+The global centres differ from $\tilde s$ by less than $10^{-16}$, and the stored radii differ from $\rho_g$ by less
+than $10^{-16}$, as checked exactly. Thus each omitted ball is contained in
+$B(\tilde s,\rho_g+10^{-14})$ and is covered by the local ellipsoid.
+
+Expanding each $\varphi$ term to degree $20$ at $\tilde s$, enclosing its coefficients in ball arithmetic, and bounding
+the geometric series tail produces an exact rational polynomial $\Lambda(y)$ and rational $\varepsilon>0$ such that
+\[
+ |\lambda(\tilde s+My)-\Lambda(y)|\le\varepsilon
+ \quad\hbox{whenever }|My|\le R_{\rm out}.
+\]
+Polynomial substitutions and Taylor shifts are exact rational operations. The roots of the local branch-and-bound
+calculation cover the full bounding box of $\mathcal E$. Affine domain cuts are rounded conservatively, so the tested
+domain contains the true domain.
+
+\paragraph{The inner node estimate.}
+Choose rational multipliers $m_G,\nu\ge0$, with $\nu=0$ except at the edge node, and put
+\[
+ L(y)=\Lambda(y)-m_G G(\tilde s+My)-\nu(u+1)
+     =c_0+g\cdot y+\tfrac12 y^\top H_Ly+R(y).
+\]
+The subtracted functions are nonnegative on the true domain. Exact positive-definiteness tests give
+$H_L\succeq(9/10)I$. If $R(y)=\sum_{|\alpha|\ge3}r_\alpha y^\alpha$, the bound
+\[
+ |R(y)|\le M_r|y|^3,\qquad
+ M_r=\sum_{|\alpha|\ge3}|r_\alpha|y_{\rm in}^{|\alpha|-3},
+ \qquad M_r y_{\rm in}\le\frac9{40}
+\]
+is certified in ball arithmetic; $c_M y_{\rm in}\le R_{\rm out}$ is checked exactly.
+Thus, for $|y|\le y_{\rm in}$ in the domain,
+\[
+ \lambda\ge c_0-\varepsilon-|g|\,|y|+\frac9{40}|y|^2.
+\]
+The exact rational test
+$c_0-\varepsilon\ge |g|^2/(9/20)$ is stronger than the condition obtained by minimizing this quadratic and proves
+$\lambda\ge0$. Moreover $\lambda\ge\theta_{\rm loc}$ whenever
+\[
+ y_{\rm tin}:=\frac{|g|}{9/40}
+       +\sqrt{\frac{\theta_{\rm loc}+\varepsilon}{9/40}}
+       \le |y|\le y_{\rm in}.
+\]
+The computation uses a rational upper bound for $y_{\rm tin}$; for every node it is at most
+$4.22\cdot10^{-7}<y_{\rm in}$.
+
+\paragraph{The remaining local and global regions.}
+The local interval verifier proves nonnegativity on the remainder of $\mathcal E$ intersected with the domain.
+It proves the stronger bound $\lambda\ge\theta_{\rm loc}$ except in cells whose norm is at most the reported
+$y_{\rm tube}$. This number is an outward bound, exported with enough digits to recover the binary number exactly;
+its conversion and use in the final inequality are checked over $\Q$.
+Combining this calculation with the inner node estimate proves nonnegativity everywhere in the local region and
+the threshold bound outside distance
+\[
+ c_M\max(y_{\rm tube},y_{\rm tin})+10^{-50}
+\]
+from the corresponding true node.
+
+The global verifier proves $\lambda\ge\theta_{\rm far}$ outside the omitted balls. These balls are covered by the local
+calculations, as just shown. Every omitted ball lies within distance $0.01$ of its corresponding true node.
+We therefore obtain~\eqref{eq:c1}--\eqref{eq:c3} with $\rho_1=0.01$, provided that the preceding local tube radii are
+at most $\tau$. The choice $0.01$ leaves a strict margin for both rational-to-double centre conversion and the
+approximation of the true nodes.
+
+\subsection{Result}
+With $\theta_{\rm loc}=\THLOC>(\Es-e)/12$ and $\theta_{\rm far}=\THFAR>\Es-e$:
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+ & nodes / root cells & cells & failures\\
+\midrule
+local runs ($22$ nodes of the fundamental domains) & $22\times64$ & $498\,434$ & $0$\\
+global run $PPR$ & $20$ & \NPPR & $0$\\
+global run $PRR$ & $427$ & \NPRR & $0$\\
+global run $RRR$ & $229$ & \NRRR & $0$\\
+\bottomrule
+\end{tabular}
+\end{center}
+There are $22$ nodes in the fundamental domains: $1$ of $PPR$, $9$ of $PRR$, and $12$ of $RRR$.
+The node estimate holds at all of them. The exact and interval checks give
+$c_M\le\CMAX$, $\varepsilon\le10^{-34}$, $y_{\rm tube}<8.211\cdot10^{-7}$, and
+\[
+ \tau=\max_{\rm nodes}c_M\max(y_{\rm tube},y_{\rm tin})+10^{-50}<\TUBE .
+\]
+The global runs use target root-cell width approximately $0.2$ and minimum half-width approximately $10^{-10}$;
+the smallest accepted lower bounds are approximately
+$2.3\cdot10^{-12}$, $1.2\cdot10^{-12}$ and $1.0077\cdot10^{-12}$ (threshold $10^{-12}$).
+\begin{proof}[Proof of Theorem~\ref{thm:C}]
+The certificate satisfies \eqref{eq:c1}--\eqref{eq:c3} with $\tau=\TUBE\le10^{-3}$, $\rho_1=0.01<0.017$,
+$12\,\theta_{\rm loc}>4.79\cdot10^{-13}>3.65\cdot10^{-13}>\Es-e$ and $\theta_{\rm far}>9.9\cdot10^{-13}>\Es-e$;
+Proposition~\ref{prop:cap} applies.
+\end{proof}
+
+%======================================================================
+\section{Rigidity: from inner-product types to coordinates}\label{sec:rigidity}
+%======================================================================
+Write $h=\hs$, $r=\sqrt{1-h^2}$ and
+\[
+ G_{=}=\{h^2+\tfrac{r^2}{2},\ h^2-\tfrac{r^2}{2},\ h^2-r^2\},\qquad
+ G_{\neq}=\{-h^2+\tfrac{\sqrt3}{2}r^2,\ -h^2,\ -h^2-\tfrac{\sqrt3}{2}r^2\}
+\]
+(the inner products of two ring points of $\Xs$ in the same ring, resp.\ in different rings).
+
+\begin{lemma}[rigidity]\label{lem:rigidity}
+Let $0<\tau\le10^{-3}$ and let $X=\{P,Q,x_1,\dots,x_{12}\}\subset\Sph$ satisfy
+\begin{enumerate}[label=(\roman*)]
+\item $|\ip PQ+1|\le\tau$;
+\item for every $i$ there is $\sigma_i\in\{\pm1\}$ with $|\ip P{x_i}-\sigma_ih|\le\tau$ and $|\ip Q{x_i}+\sigma_ih|\le\tau$;
+\item for all $i\neq j$ there is $g\in G_{=}$ (if $\sigma_i=\sigma_j$), resp.\ $g\in G_{\neq}$ (if $\sigma_i\neq\sigma_j$), with
+      $|\ip{x_i}{x_j}-g|\le\tau$.
+\end{enumerate}
+Then $\#\{i:\sigma_i=1\}=\#\{i:\sigma_i=-1\}=6$, and after an orthogonal change of coordinates and a relabelling of the points
+the gauge coordinates $p$ of $X$ (Section~\ref{sec:local}) satisfy $|p-p^\ast|_\infty\le 9\tau$ and $|p-p^\ast|_2\le 23\tau$.
+\end{lemma}
+\begin{proof}
+Put $P=e_3$ by an orthogonal map and write
+$x_i=(\rho_i\cos\theta_i,\rho_i\sin\theta_i,z_i)$, where $\rho_i=\sqrt{1-z_i^2}$.
+Hypothesis (ii) gives $|z_i-\sigma_i h|\le\tau$ and
+\[
+ |\rho_i-r|\le\beta\tau,\qquad
+ \beta=\frac{h+\tau}{\sqrt{1-(h+\tau)^2}}<0.513.
+\]
+For points with equal signs and $g=h^2+r^2c$ from (iii),
+\[
+ \cos(\theta_i-\theta_j)-c
+ =\frac{(\langle x_i,x_j\rangle-g)-(z_i z_j-h^2)-c(\rho_i\rho_j-r^2)}{\rho_i\rho_j}.
+\]
+Here $|z_i z_j-h^2|\le2h\tau+\tau^2$,
+$|\rho_i\rho_j-r^2|\le2r\beta\tau+\beta^2\tau^2$, and
+$\rho_i\rho_j\ge(r-\beta\tau)^2$. Therefore
+\[
+ |\cos(\theta_i-\theta_j)-c|\le3.569\tau
+ \quad(c\in\{1/2,-1/2,-1\}).
+\]
+For opposite signs the same calculation, with $c\in\{\sqrt3/2,0,-\sqrt3/2\}$ and
+$z_i z_j$ compared to $-h^2$, gives the bound $3.414\tau$.
+
+Set $a=1.16(3.569)$, $b=1.001(3.414)$, and $c_0=2.32(3.414)$, all exact decimals.
+The mean value theorem for cosine shows that an equal-sign angular distance is within $a\tau$ of
+$\pi/3$ or $2\pi/3$, or belongs to the separate option near $\pi$.
+An opposite-sign distance is within $b\tau$ of $\pi/2$ or within $c_0\tau$ of $\pi/6$ or $5\pi/6$.
+For example, the first bound follows from
+$1.16\sin(\pi/3-a\tau)>1$; the other two follow from
+$1.001\cos(b\tau)>1$ and $2.32\sin(\pi/6-c_0\tau)>1$.
+These inequalities and the separation of the three options are checked for $\tau\le10^{-3}$ by
+\path{audit_geometry.py}, using rational constants and ball arithmetic.
+
+Every equal-sign angular distance is at least $\pi/3-a\tau$.
+Since $7(\pi/3-a\tau)>2\pi$, each sign occurs at most six times and hence exactly six times.
+In circular order, all six consecutive gaps are at least $\pi/3-a\tau$ and sum to $2\pi$.
+Each is consequently at most $\pi/3+5a\tau$.
+This upper bound excludes both the $2\pi/3$ option and the near-$\pi$ option, so every gap is within $a\tau$ of $\pi/3$.
+
+Choose an upper-ring reference point with azimuth zero and label the remaining upper points in circular order.
+The gap bounds first put them within $\min(k,6-k)a\tau$ of $k\pi/3$.
+Direct comparison with the reference point then gives error at most $a\tau$ for $k=1,2,4,5$; the angular options are
+too far apart to be confused. Comparing the opposite point with the point at $k=1$ bounds its error by $2a\tau$.
+
+Comparison of a lower-ring point with the reference point puts its angle within $c_0\tau$ of an odd multiple
+of $\pi/6$. Of the two upper ideal vertices at angular difference $\pi/2$ from that location, at least one is not
+the vertex opposite the reference point and therefore has error at most $a\tau$.
+The coarse error bound $(c_0+a)\tau$ forces the comparison with that vertex to use the $\pi/2$ option.
+The sharper bound for this option puts the lower point within $(a+b)\tau$ of its ideal location.
+Two lower points cannot occupy the same ideal location, since
+$2(a+b)\tau<\pi/3-a\tau$. There are six lower points and six such locations, so every location occurs once.
+This proves the required $30^\circ$ rotation between the rings.
+
+Write $Q=(A,B,-w)$ with $w=-\langle P,Q\rangle\in[1-\tau,1]$.
+For $z_i=\sigma_i h+\epsilon_i$ and
+$\langle Q,x_i\rangle=-\sigma_i h+\delta_i$, where $|\epsilon_i|,|\delta_i|\le\tau$,
+\[
+ |\rho_i(A\cos\theta_i+B\sin\theta_i)|
+ =|\delta_i+w\epsilon_i+\sigma_i h(w-1)|\le(2+h)\tau.
+\]
+The upper reference point gives $|A|\le(2+h)\tau/(r-\beta\tau)$.
+Using the lower point whose angle is within $(a+b)\tau$ of $\pi/2$ then bounds $|B|$.
+Both bounds are less than $2.79\tau$, as certified by \path{audit_geometry.py}.
+The twelve height errors, eleven free azimuth errors, and two pole-coordinate errors consequently satisfy
+\[
+ |p-p^\ast|_2^2\le
+ \bigl(12+4a^2+(2a)^2+6(a+b)^2+2(2.79)^2\bigr)\tau^2
+ <23^2\tau^2,
+ \qquad |p-p^\ast|_\infty<9\tau.
+\]
+The rational and interval inequalities above hold uniformly on $0<\tau\le10^{-3}$: the error bounds increase with
+$\tau$ and their denominators remain positive. Their evaluation at $10^{-3}$ therefore suffices.
+\end{proof}
+
+%======================================================================
+\section{Local minimality}\label{sec:local}
+%======================================================================
+\paragraph{Gauge coordinates.} For configurations near $\Xs$ we fix $P=e_3$, write the second pole as $Q=(a,b,-\sqrt{1-a^2-b^2})$,
+the first upper-ring point as $(\sqrt{1-z_2^2},0,z_2)$ (azimuth fixed to $0$) and all other ring points as
+$(\sqrt{1-z_i^2}\cos\theta_i,\sqrt{1-z_i^2}\sin\theta_i,z_i)$; this gives $25$ parameters $p$, with $p^\ast$ the parameters of $\Xs$.
+Every configuration whose points are within the bounds of Lemma~\ref{lem:rigidity} of $\Xs$ is, after an orthogonal map, of this form.
+
+\begin{proposition}[quantitative local minimality]\label{prop:local}
+For $0<|p-p^\ast|_2\le 0.0075$ one has $E(p)>E(p^\ast)=\Es$.
+\end{proposition}
+\begin{proof}
+Let $\Delta=p-p^\ast$. Criticality from Lemma~\ref{lem:hstar} and Taylor's theorem give
+\[
+ E(p)-\Es=\tfrac12\Delta^\top H\Delta+C(\Delta)+R_4(\Delta).
+\]
+The program \path{audit_local.py} obtains interval Taylor coefficients by the truncated power-series arithmetic
+of \path{localmin_jet.py}. It verifies the following bounds with rational matrix tests and ball arithmetic:
+\[
+ H\succeq0.0964I,\qquad |C(\Delta)|\le5.04|\Delta|_2^3,
+ \qquad |R_4(\Delta)|\le147|\Delta|_2^4
+ \quad\hbox{if }|\Delta|_\infty\le0.008.
+\]
+Here are the details of the norm estimates. For the Hessian, the exact rational midpoint matrix minus $0.0965I$
+is positive definite, and the Frobenius norm of its error matrix is less than $0.0001$.
+For the cubic form, its symmetric coefficient tensor is flattened to a $25\times625$ matrix $F$.
+If $F_0$ is its rational midpoint, exact positive definiteness of
+$(5.039)^2I-F_0F_0^\top$, together with an interval Frobenius bound less than $0.001$ for $F-F_0$,
+gives the stated cubic bound.
+
+Each of the $91$ pair energies depends on at most four gauge coordinates. Its fourth-order coefficient tensor is
+enclosed over the entire box $|\Delta|_\infty\le0.008$, so the enclosure holds at every intermediate point in the
+one-dimensional Taylor remainder along $p^\ast+t\Delta$.
+For each pair, flattening gives a symmetric matrix with rational midpoint $M_{ij}$.
+Exact positive-definiteness tests on $q_{ij}I\pm M_{ij}$, followed by an interval Frobenius bound for the error,
+give $|R_{ij}|\le s_{ij}|\Delta_{ij}|_2^4$.
+Here $\Delta_i$ denotes the parameter block belonging to point $i$, and
+$|\Delta_{ij}|_2^2=|\Delta_i|_2^2+|\Delta_j|_2^2$.
+Thus
+\[
+ |R_4|\le2\sum_i |\Delta_i|_2^4\sum_{j\ne i}s_{ij}
+ \le\left(2\max_i\sum_{j\ne i}s_{ij}\right)|\Delta|_2^4
+ \le147|\Delta|_2^4.
+\]
+The last inequality is checked in ball arithmetic. The rational proposals $q_{ij}$ are supplied in
+\path{Local/local_norm_bounds.json}, relative to \path{Certificates/}.
+They are accepted as bounds only after the exact matrix tests.
+
+For $0<|\Delta|_2\le0.0075$, the box condition holds and
+\[
+ E(p)-\Es\ge |\Delta|_2^2
+ \bigl(0.0482-5.04|\Delta|_2-147|\Delta|_2^2\bigr)>0.
+\]
+The bracket decreases with $|\Delta|_2$ and equals the positive rational number $341/160000$ at $0.0075$.
+\end{proof}
+
+%======================================================================
+\appendix
+\section{Certificates and reproduction}\label{sec:repro}
+%======================================================================
+Each case has an exact \texttt{certificate.json} file, together with problem files and compressed root data.
+The JSON file specifies the rational matrices and slack coefficients.
+The directories in the table are relative to \path{Certificates/}.
+All verification code is in \path{Certificates/common/}.
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+statement & certificate directory & verification runs\\
+\midrule
+Proposition~\ref{prop:sep} (Case 0) & \path{Case0_separation_T0.8_D16} & $2$ global\\
+Proposition~\ref{prop:caseI} (Case I) & \path{CaseI_a-0.98_D40} & $1$ global\\
+Case II, Section~\ref{sec:slabs} & \path{Slab_m099_m098} & $3$ global\\
+Theorem~\ref{thm:C} (Case III) & \path{CaseIII_cap_D20} & $22$ local, $3$ global\\
+\bottomrule
+\end{tabular}
+\end{center}
+The problem/root file prefixes are \path{case0_pos}, \path{case0_close} (sharing \path{case0_roots}),
+\texttt{v3t98}, \path{s1_D20_PPR}, \path{s1_D20_PRR}, and \path{s1_D20_RRR}.
+Within the cap directory, the global prefixes are \path{global/g_PPR}, \path{global/g_PRR}, and
+\path{global/g_RRR}. The $22$ local prefixes are \path{local/nXX}, with
+\[
+\begin{split}
+\mathrm{XX}\in\{&00,02,03,04,05,06,07,11,12,13,14,15,16,17,19,\\
+                 &25,26,34,36,44,48,56\}.
+\end{split}
+\]
+Problem files have suffix \path{_ts.txt}; compressed root files have suffix \path{_roots.txt.xz}.
+The complete data schema and the meanings of every problem-file field are documented in
+\path{Certificates/FORMAT.md}. The top-level \texttt{SHA256SUMS} identifies all release files.
+Hashes establish file identity; the mathematical verification additionally checks the identities,
+arithmetic bounds and domain coverage described in this paper.
+
+\paragraph{Analytic checks and their programs.}
+Lemma~\ref{lem:hstar} uses \path{enclose_h.py}.
+The exact kernel identities and matrix inequalities use \path{audit_identity.py}.
+The complete list of $69$ triple types, the numerical inequalities in Lemmas~\ref{lem:sign} and~\ref{lem:class},
+and the constants in Lemma~\ref{lem:rigidity} are checked by \path{audit_geometry.py}.
+Proposition~\ref{prop:local} uses \path{audit_local.py}, the Taylor algebra in \path{localmin_jet.py},
+and the rational proposals in \path{Certificates/Local/local_norm_bounds.json}.
+The inner-node estimates and local ellipsoid containment tests use \path{prep_local3.py}.
+Finally, \path{audit_closure.py} checks the expected result list, regenerated root data, problem parameters,
+local/global overlap, tube radii and final rational comparisons. The analytic arguments connecting these
+checks are given in the preceding sections.
+
+\paragraph{Reproduction.}
+From the repository root, install the pinned Python dependencies and run
+\begin{verbatim}
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+PYTHON="$PWD/.venv/bin/python" bash verify.sh 4
+\end{verbatim}
+The reference environment is Linux x86\_64 with Python 3.13.5, python-flint 0.9.0,
+and g++ 14.2.0 with OpenMP. Bash and the standard utilities \texttt{sha256sum}, \texttt{head},
+\texttt{tail}, \texttt{tee}, \texttt{grep} and \texttt{basename} are required; the Python standard
+library reads the XZ archives. A TeX installation is needed only to rebuild this paper.
+The README gives the full commands and the expected results.
+
+The compilation flags are \texttt{-O2}, \texttt{-fopenmp}, \texttt{-ffp-contract=off} and \texttt{-fno-fast-math}.
+The script uses the requested $1$--$8$ OpenMP threads
+and one BLAS thread, and limits each process to $8\,000\,000$ KiB of virtual memory.
+It writes generated inputs, binaries and new logs to \path{build/}; the supplied reference logs remain
+in \path{results/reference/}. Python assertions remain enabled.
+It stops on any failed command or assertion. The steps are:
+\begin{enumerate}
+\item verify the release hashes and the height, node-list, rigidity and local-minimality checks;
+\item verify the exact matrix certificates and all energy identities;
+\item regenerate the global root coverings and all $22$ local node calculations from the exact JSON data;
+\item run all $31$ branch-and-bound calculations;
+\item compare regenerated root data with the supplied archives and check every final coverage and margin inequality.
+\end{enumerate}
+All $31$ runs verify, totalling $2\,903\,200$ cells, with no failed cells or reported counterexamples.
+The final success message is \texttt{FULL PROOF VERIFIED}. The corresponding marker is
+\path{build/logs/FULL_PROOF_VERIFIED}, written only after the closure check succeeds.
+The rational local coordinate systems and norm proposals are part of the supplied data, and every required
+inequality is checked. Reproduction does not call an eigensolver. The reference run uses a fresh virtual environment
+containing only python-flint. A root-data mismatch is a failed reproduction and must be investigated;
+it must not be ignored to obtain a success message.
+
+\paragraph{Scope of the computation.}
+All inequalities used in the proof are established by exact rational tests or outward interval bounds.
+The trusted software consists of the rational arithmetic routines, FLINT/Arb, the stated interval verifiers, and their
+compiler and arithmetic environment, including correctly rounded binary64 operations and square root.
+The proof is an analytic argument supplemented by these computations, rather than a formal proof-assistant derivation.
+Neither convergence of a numerical optimizer nor agreement at finitely many sample configurations is used to establish
+an identity or a positivity statement. The repository contains the fixed certificates and complete verification
+sources; optimization and search software is not needed for reproduction.
+
+\begin{thebibliography}{9}
+\bibitem{CohnWoo} H.~Cohn, J.~Woo, \emph{Three-point bounds for energy minimization}, J. Amer. Math. Soc. 25 (2012), 929--958. \href{https://arxiv.org/abs/1103.0485}{arXiv:1103.0485}.
+\bibitem{BV} C.~Bachoc, F.~Vallentin, \emph{New upper bounds for kissing numbers from semidefinite programming},
+J. Amer. Math. Soc. 21 (2008), 909--924. \href{https://arxiv.org/abs/math/0608426}{arXiv:math/0608426}.
+\end{thebibliography}
+\end{document}
